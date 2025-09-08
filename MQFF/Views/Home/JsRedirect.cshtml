@@ -1,0 +1,14 @@
+﻿@model string
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Redirecting...</title>
+    <meta http-equiv="refresh" content="2;url=@Model" />
+</head>
+<body>
+    <p>Redirecting to <a href="@Model">@Model</a> ...</p>
+    <script>
+        window.location.href = '@Model';
+    </script>
+</body>
+</html>

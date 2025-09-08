@@ -1,0 +1,18 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+# Build folders
+bin/
+obj/
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+
+# Others
+*.log
+*.tmp
+/.vs/OCMS/v17/DocumentLayout.json
+/.vs/VSWorkspaceState.json

@@ -1,0 +1,119 @@
+﻿.myfair-table thead th {
+    background: #a3d65c;
+    color: #fff;
+    font-weight: bold;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+}
+
+.myfair-table {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(163, 214, 92, 0.1);
+    font-size: 0.95rem;
+}
+
+    .myfair-table tbody tr:hover {
+        background: #f4fbe4;
+    }
+
+.status-badge {
+    font-size: 0.85em;
+    padding: 5px 12px;
+    border-radius: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.status-NEW {
+    background: #e3f2fd; /* Biru muda */
+    color: #1565c0; /* Biru terang */
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.status-FORREVIEW {
+    background: #fffde7; /* Kuning muda */
+    color: #fbc02d; /* Kuning tua */
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.status-FORAPPROVAL {
+    background: #ede7f6; /* Ungu muda */
+    color: #512da8; /* Ungu tua */
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.status-APPROVED {
+    background: #e8f5e9; /* Hijau muda */
+    color: #388e3c; /* Hijau tegas */
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.status-REJECTED {
+    background: #ffebee; /* Merah muda */
+    color: #c62828; /* Merah tegas */
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.status-UPDATED {
+    background: #f5f5f5; /* Abu-abu terang */
+    color: #616161; /* Abu-abu tua */
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.status-CLOSED {
+    background: #cfd8dc; /* Abu-abu medium */
+    color: #263238; /* Abu-abu sangat tua */
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.status-COMPLETEREVIEW {
+    background: #f1f8e9; /* Lime muda */
+    color: #558b2f; /* Hijau olive tua */
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.status-DELETED {
+    background: #ffebee; /* Merah muda pucat */
+    color: #c62828; /* Merah tua */
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.myfair-table .action-col {
+    text-align: center;
+}
+
+.myfair-table .btn-view {
+    background: #a3d65c;
+    color: #fff;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 2px 18px;
+    transition: background 0.2s;
+}
+
+    .myfair-table .btn-view:hover {
+        background: #8bc34a;
+        color: #fff;
+    }
+
+.form-header {
+    background: #a3d65c;
+    color: #fff;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 18px;
+    letter-spacing: 0.5px;
+}

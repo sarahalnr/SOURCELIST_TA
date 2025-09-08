@@ -1,0 +1,10 @@
+﻿@{
+    var userInfo = ViewBag.UserInfo as sourcelist.Models.UserInfo;
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <h2>@userInfo?.FullName (@userInfo?.IDCard)</h2>
+    <br />
+</div>
+
