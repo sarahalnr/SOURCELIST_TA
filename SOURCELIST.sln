@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sourcelist", "MQFF\sourcelist.csproj", "{4B99053A-CA48-417D-A132-7EF2CD881FE0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sourcelist", "SOURCELIST\sourcelist.csproj", "{4B99053A-CA48-417D-A132-7EF2CD881FE0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
