@@ -1,0 +1,91 @@
+﻿using sourcelist.Services;
+using Microsoft.AspNetCore.Mvc;
+using sourcelist.Models.ViewModels;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
+using System.IO;
+using System;
+using System.Linq;
+
+namespace sourcelist.Controllers
+{
+    public class SourceListController : Controller
+    {
+        private readonly ILDAPService _ldapService;
+        private readonly ISourceListService _sourceListService;
+        private readonly IWebHostEnvironment _webHostEnvironment;
+
+        public SourceListController(ILDAPService ldapService, ISourceListService sourceListService, IWebHostEnvironment webHostEnvironment)
+        {
+            _ldapService = ldapService;
+            _sourceListService = sourceListService;
+            _webHostEnvironment = webHostEnvironment;
+        }
+
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create(SourceListCreateViewModel model)
+        {
+          
+            if (model.SupplierStatus == "New" && model.AttachmentFile == null)
+            {
+                // Jika status "New" tapi tidak ada file, tambahkan error 
+                ModelState.AddModelError("AttachmentFile", "Supplier Assesment Form is required for new suppliers.");
+            }
+          
+
+            if (ModelState.IsValid)
+            {
+                try // untuk error handling
+                {
+                    string uniqueFileName = null;
+                    if (model.AttachmentFile != null)
+                    {
+                        // Path penyimpanan file 
+                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "attachments");
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(model.AttachmentFile.FileName);
+                        string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await model.AttachmentFile.CopyToAsync(fileStream);
+                        }
+                    }
+
+                    string newId = await _sourceListService.CreateNewSourceListAsync(model, uniqueFileName);
+
+                    // Mengembalikan respons JSON untuk AJAX
+                    return Ok(new { success = true, message = "Data berhasil disimpan!", newId = newId });
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(500, new { success = false, message = "Terjadi kesalahan server: " + ex.Message });
+                }
+            }
+            return BadRequest(new { success = false, message = "Data yang dikirim tidak valid." });
+        }
+
+        [HttpGet]
+        public JsonResult SearchApprovers(string term)
+        {
+            var users = _ldapService.GetAllUsers(term);
+            var result = users.Select(u => new
+            {
+                id = u.UserName,
+                text = $"{u.DisplayName}",
+                email = u.Email,
+                desc = u.BadgeNo
+            });
+            return Json(result);
+        }
+    }
+}

@@ -4,9 +4,9 @@ using sourcelist.Services;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using sourcelist.Infrastructure;
 using sourcelist.Provider;
-using sourcelist.Services;
 
-var builder = WebApplication.CreateBuilder(args);
+
+var builder = WebApplication.CreateBuilder(args); 
 
 builder.Services.AddControllersWithViews();
 
@@ -14,6 +14,8 @@ builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
     .AddNegotiate();
 
 builder.Services.AddSingleton<IConnectionString, ConnectionString>();
+
+builder.Services.AddScoped<ISourceListService, SourceListService>();
 
 
 builder.Services.Configure<LDAPOptions>(builder.Configuration.GetSection("LDAP"));

@@ -114,37 +114,37 @@
             <div class="row mb-3 align-items-center">
                 <label for="requestor" class="col-sm-3 col-form-label">Requestor</label>
                 <div class="col-sm-9">
-                    <input type="text" id="requestor" class="form-control" disabled="disabled" value="@userInfo?.FullName">
+                    <input type="text" id="requestor" name="Requestor" class="form-control" disabled="disabled" value="@userInfo?.FullName">
                 </div>
             </div>
             <div class="row mb-3 align-items-center">
                 <label for="bauNo" class="col-sm-3 col-form-label">BAU No. / Part Number</label>
                 <div class="col-sm-9">
-                    <input type="text" id="bauNo" class="form-control" required>
+                    <input type="text" id="bauNo" name="BAUNumber" class="form-control" required>
                 </div>
             </div>
             <div class="row mb-3 align-items-center">
                 <label for="partDesc" class="col-sm-3 col-form-label">Part Description</label>
                 <div class="col-sm-9">
-                    <input type="text" id="partDesc" class="form-control" required>
+                    <input type="text" id="partDesc" name="PartDescription" class="form-control" required>
                 </div>
             </div>
             <div class="row mb-3 align-items-center">
                 <label for="supplierName" class="col-sm-3 col-form-label">Supplier Name</label>
                 <div class="col-sm-9">
-                    <input type="text" id="supplierName" class="form-control" required>
+                    <input type="text" id="supplierName" name="SupplierName" class="form-control" required>
                 </div>
             </div>
             <div class="row mb-3 align-items-center">
                 <label for="vendorCode" class="col-sm-3 col-form-label">Vendor Code</label>
                 <div class="col-sm-9">
-                    <input type="text" id="vendorCode" class="form-control" required>
+                    <input type="text" id="vendorCode" name="VendorCode" class="form-control" required>
                 </div>
             </div>
             <div class="row mb-3 align-items-center">
                 <label for="supplierStatus" class="col-sm-3 col-form-label">Supplier status</label>
                 <div class="col-sm-5">
-                    <select id="supplierStatus" class="form-select" required>
+                    <select id="supplierStatus" name="SupplierStatus" class="form-select" required>
                         <option selected value=""></option>
                         <option value="New">New</option>
                         <option value="Existing">Existing</option>
@@ -154,7 +154,7 @@
             <div class="row mb-3 align-items-center">
                 <label for="sourceListStatus" class="col-sm-3 col-form-label">Source list status</label>
                 <div class="col-sm-5">
-                    <select id="sourceListStatus" class="form-select" required>
+                    <select id="sourceListStatus" name="SourceListStatus" class="form-select" required>
                         <option selected></option>
                         <option value="New">New</option>
                         <option value="Extend">Extend</option>
@@ -166,7 +166,7 @@
                 <label class="col-sm-3 col-form-label">Supplier Assesment Form</label>
                 <div class="col-sm-9">
                     <div class="file-input-wrapper">
-                        <input type="file" id="supplierAssessmentForm" accept=".pdf" disabled>
+                        <input type="file" id="supplierAssessmentForm" name="AttachmentFile" accept=".pdf" disabled>
                         <div id="fileDisplay" class="file-display disabled">
                             <span id="fileName">No file chosen (PDF file)</span>
                             <button type="button" id="fileClear" class="file-clear-button" style="display: none;">
@@ -180,7 +180,7 @@
             <div class="row mb-3 align-items-center">
                 <label for="cmsFinalCrb" class="col-sm-3 col-form-label">CMS# of Final CRB</label>
                 <div class="col-sm-9">
-                    <input type="text" id="cmsFinalCrb" class="form-control" required>
+                    <input type="text" id="cmsFinalCrb" name="CMSFinalCRB" class="form-control" required>
                 </div>
             </div>
         </div>
@@ -190,7 +190,7 @@
             <div class="row mb-3">
                 <label for="reasonSubmission" class="col-sm-2 col-form-label pt-0">Reason of Submission</label>
                 <div class="col-sm-10">
-                    <textarea id="reasonSubmission" class="form-control textarea-tall" required></textarea>
+                    <textarea id="reasonSubmission" name="ReasonSubmission" class="form-control textarea-tall" required></textarea>
                 </div>
             </div>
         </div>
@@ -426,20 +426,65 @@
                 }
 
                 // Jika validasi lolos, lanjutkan konfirmasi
-                Swal.fire({
-                    title: 'konfirmasi',
-                    text: "Apakah Anda yakin semua data sudah benar??",
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, Submit!'
-                }).then((result) => {
-                    if (result.isConfirmed) {
+                        Swal.fire({
+                title: 'Konfirmasi',
+                text: "Apakah Anda yakin semua data sudah benar?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Submit!'
+            }).then((result) => {
+                if (result.isConfirmed) {
 
-                        Swal.fire('Submitted!', 'Permintaan Anda telah dikirimkan.', 'success');
+                    // Aktifkan field requestor 
+                    $('#requestor').prop('disabled', false);
+
+                    var formData = new FormData($('#sourcelistForm')[0]);
+
+                    // Nonaktifkan kembali 
+                    $('#requestor').prop('disabled', true);
+
+                    if (approvalList.length > 0) {
+                        formData.append('ApproverName', approvalList[0].ApproverName);
+                        formData.append('ApproverEmail', approvalList[0].ApproverEmail);
+                    }
+
+                    Swal.fire({
+                        title: 'Submitting...',
+                        text: 'Please wait while we process your request.',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    $.ajax({
+                        url: '@Url.Action("Create", "SourceList")',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function (response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Submitted!',
+                                    text: response.message
+                                }).then(() => {
+                                    window.location.reload();
+                                });
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        },
+                        error: function (jqXHR) {
+                            var errorMsg = "An unknown error occurred.";
+                            if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
+                                errorMsg = jqXHR.responseJSON.message;
+                            }
+                            Swal.fire('Request Failed', errorMsg, 'error');
+                       }
+                        });
                     }
                 });
             });
         });
     </script>
 }
-
