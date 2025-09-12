@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Hosting;
 using System.IO;
 using System;
 using System.Linq;
+using sourcelist.DTOs;
+using sourcelist.Helper;
+using sourcelist.Models;
 
 namespace sourcelist.Controllers
 {
@@ -30,12 +33,14 @@ namespace sourcelist.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(SourceListCreateViewModel model)
         {
-          
+            var UserInfo = HttpContext.Session.GetObjectFromJson<sourcelist.Models.UserInfo>("UserInfo");
             if (model.SupplierStatus == "New" && model.AttachmentFile == null)
             {
                 // Jika status "New" tapi tidak ada file, tambahkan error 
                 ModelState.AddModelError("AttachmentFile", "Supplier Assesment Form is required for new suppliers.");
             }
+
+            model.RequestorEmail = UserInfo.Email ;
           
 
             if (ModelState.IsValid)
@@ -72,6 +77,33 @@ namespace sourcelist.Controllers
                 }
             }
             return BadRequest(new { success = false, message = "Data yang dikirim tidak valid." });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> IndexMySourceList(int page = 1, int pageSize = 10, string searchTerm = null, bool isAjax = false)
+        {
+            
+            var userInfo = HttpContext.Session.GetObjectFromJson<UserInfo>("UserInfo");
+            if (userInfo == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            string userFullName = userInfo.FullName;
+
+            var result = await _sourceListService.GetSourceListsByEmailPagedAsync(userInfo.Email, userFullName, page, pageSize, searchTerm);
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalRows = result.TotalRows;
+            ViewBag.SearchTerm = searchTerm;
+
+            if (isAjax)
+            {
+               
+                return PartialView("_MySourceListTable", result); 
+            }
+
+            return View(result.Data); 
         }
 
         [HttpGet]

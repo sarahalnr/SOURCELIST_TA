@@ -13,6 +13,8 @@
         public string CMSFinalCRB { get; set; }
         public string ReasonSubmission { get; set; }
 
+        public string RequestorEmail { get; set; } // tambahan
+
         public string ApproverName { get; set; }
         public string ApproverEmail { get; set; }
     }

@@ -1,0 +1,106 @@
+﻿@model List<sourcelist.DTOs.SourceListDTO>
+
+@{
+    int page = ViewBag.Page ?? 1;
+    int pageSize = ViewBag.PageSize ?? 10;
+    int totalRows = ViewBag.TotalRows ?? 0;
+    int totalPages = (int)Math.Ceiling((double)totalRows / pageSize);
+
+    int maxPagesToShow = 5;
+    int startPage = Math.Max(1, page - maxPagesToShow / 2);
+    int endPage = Math.Min(totalPages, startPage + maxPagesToShow - 1);
+    startPage = Math.Max(1, endPage - maxPagesToShow + 1);
+}
+
+<div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle myfair-table" style="font-size:.85rem;">
+        <thead class="table-light">
+            <tr>
+                <th>Sourcelist Number</th>
+                <th>Requestor</th>
+                <th>BAU Number</th>
+                <th>Part Description</th>
+                <th>Supplier Name</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    var status = item.SourceListStatus?.Trim().ToUpper() ?? "NEW";
+                    string statusClass = status switch
+                    {
+                        "NEW" => "status-NEW",
+                        "APPROVED" => "status-APPROVED",
+                        "REJECTED" => "status-REJECTED",
+                        "FOR APPROVAL" => "status-FORAPPROVAL",
+                        _ => "status-NEW"
+                    };
+
+                    <tr>
+                        <td>@item.SourceListNumber</td>
+                        <td>@item.Requestor</td>
+                        <td>@item.BAUNumber</td>
+                        <td>@item.PartDescription</td>
+                        <td>@item.SupplierName</td>
+                        <td>
+                            <span class="status-badge @statusClass">@item.SourceListStatus</span>
+                        </td>
+                        <td>
+                            <a asp-action="Detail" asp-controller="SourceList" asp-route-id="@item.SourceListNumber" class="btn btn-sm btn-info">View</a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="text-center text-muted">No SourceList data found.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (totalPages > 1)
+{
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-end">
+            <li class="page-item @(page == 1 ? "disabled" : "")">
+                <a class="page-link" href="#" data-page="@(page - 1)">Previous</a>
+            </li>
+
+            @if (startPage > 1)
+            {
+                <li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>
+                @if (startPage > 2)
+                {
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                }
+            }
+
+            @for (int i = startPage; i <= endPage; i++)
+            {
+                <li class="page-item @(i == page ? "active" : "")">
+                    <a class="page-link" href="#" data-page="@i">@i</a>
+                </li>
+            }
+
+            @if (endPage < totalPages)
+            {
+                @if (endPage < totalPages - 1)
+                {
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                }
+                <li class="page-item"><a class="page-link" href="#" data-page="@totalPages">@totalPages</a></li>
+            }
+
+            <li class="page-item @(page == totalPages ? "disabled" : "")">
+                <a class="page-link" href="#" data-page="@(page + 1)">Next</a>
+            </li>
+        </ul>
+    </nav>
+}

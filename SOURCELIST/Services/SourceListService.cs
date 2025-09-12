@@ -1,17 +1,21 @@
 ﻿using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration; 
-using sourcelist.Models.ViewModels; 
+using Microsoft.Extensions.Configuration;
+using sourcelist.DTOs;
+using sourcelist.Models.ViewModels;
+using System; 
+using System.Collections.Generic; 
 using System.Data;
-using System.Threading.Tasks; 
+using System.Threading.Tasks;
+using Tavis.UriTemplates;
 
 namespace sourcelist.Services
 {
-    
+
     public class SourceListService : ISourceListService
     {
         private readonly IConfiguration _configuration;
 
-        
+
         public SourceListService(IConfiguration configuration)
         {
             _configuration = configuration;
@@ -19,11 +23,11 @@ namespace sourcelist.Services
 
         public async Task<string> CreateNewSourceListAsync(SourceListCreateViewModel model, string attachmentFileName)
         {
-        
+
             var connectionString = _configuration.GetConnectionString("DefaultConnection");
             string newSourceListId = string.Empty;
 
-            
+
             using (var connection = new SqlConnection(connectionString))
             {
                 using (var command = new SqlCommand("SOURCELIST_INSERT_NEW_SOURCELIST", connection))
@@ -43,7 +47,7 @@ namespace sourcelist.Services
                     command.Parameters.AddWithValue("@ApproverName", model.ApproverName);
                     command.Parameters.AddWithValue("@ApproverEmail", model.ApproverEmail);
 
-                 
+
                     if (string.IsNullOrEmpty(attachmentFileName))
                     {
                         command.Parameters.AddWithValue("@AttachmentFileName", DBNull.Value);
@@ -64,6 +68,72 @@ namespace sourcelist.Services
                 }
             }
             return newSourceListId;
+        }
+
+
+
+        public async Task<PagedResult<SourceListDTO>> GetSourceListsByEmailPagedAsync(string email, string requestorName, int page, int pageSize, string searchTerm)
+        {
+            var dataList = new List<SourceListDTO>();
+            int totalRows = 0;
+
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            using (var connection = new SqlConnection(connectionString))
+            {
+                using (var command = new SqlCommand("SOURCELIST_GET_MY_SOURCELIST", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@EmailLogin", email);
+                    command.Parameters.AddWithValue("@RequestorName", requestorName);
+                    command.Parameters.AddWithValue("@PageNumber", page);
+                    command.Parameters.AddWithValue("@PageSize", pageSize);
+                    command.Parameters.AddWithValue("@SearchTerm", string.IsNullOrEmpty(searchTerm) ? DBNull.Value : searchTerm);
+
+                    var totalRowsParam = new SqlParameter
+                    {
+                        ParameterName = "@TotalRows",
+                        SqlDbType = SqlDbType.Int,
+                        Direction = ParameterDirection.Output
+                    };
+                    command.Parameters.Add(totalRowsParam);
+
+                    await connection.OpenAsync();
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+
+                        await reader.NextResultAsync();
+
+
+                        while (await reader.ReadAsync())
+                        {
+                            dataList.Add(new SourceListDTO
+                            {
+                            
+                                BAUNumber = reader["BAUNumber"].ToString(),
+                                PartDescription = reader["PartDescription"].ToString(),
+                                SupplierName = reader["SupplierName"].ToString(),
+                                SourceListStatus = reader["SourceListStatus"].ToString(),
+                               
+                            });
+
+                        }
+                    }
+
+
+                    if (totalRowsParam.Value != DBNull.Value)
+                    {
+                        totalRows = (int)totalRowsParam.Value;
+                    }
+                }
+            }
+
+            return new PagedResult<SourceListDTO>
+            {
+                Data = dataList,
+                TotalRows = totalRows,
+                TotalPages = (int)Math.Ceiling((double)totalRows / pageSize)
+            };
         }
     }
 }
