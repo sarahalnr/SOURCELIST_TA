@@ -29,7 +29,7 @@
             overflow-y: auto;
             padding: 2rem !important;
         }
-      
+
         .form-header {
             background-color: #a3d65c;
             color: white;
@@ -60,7 +60,7 @@
         }
 
         .input-error {
-            border-color: #e74c3c !important; 
+            border-color: #e74c3c !important;
         }
 
         .file-input-wrapper {
@@ -95,7 +95,7 @@
         }
 
         #supplierAssessmentForm {
-            display: none; 
+            display: none;
         }
 
         .input-error + .select2-container--bootstrap-5 .select2-selection {
@@ -235,7 +235,7 @@
 
     <script>
         $(document).ready(function() {
-         
+
             const supplierStatusSelect = $('#supplierStatus');
             const assessmentFormInput = $('#supplierAssessmentForm');
             const fileDisplay = $('#fileDisplay');
@@ -292,7 +292,7 @@
             const addApproverBtn = $('#addApproverBtn');
             const approverDropdown = $('#approverDropdown');
 
-          
+
             approverDropdown.select2({
                 theme: 'bootstrap-5',
                 placeholder: '-- Search Approver --',
@@ -368,10 +368,10 @@
                 }
             }
 
-            // Fungsi untuk menghapus approver 
+            // Fungsi untuk menghapus approver
             window.removeApproval = function(index) {
                 approvalList.splice(index, 1);
-                updateApprovalTable(); 
+                updateApprovalTable();
             }
 
              // Event handler untuk menghapus border merah saat input diisi
@@ -416,13 +416,22 @@
                     $('#approverDropdown').next('.select2-container').find('.select2-selection').addClass('input-error');
                 }
 
+                //validasi assessmentform
+                 if ($('#supplierStatus').val() === 'New' && $('#supplierAssessmentForm').get(0).files.length === 0) {
+                      emptyFields.push('Supplier Assesment Form');
+                     $('#fileDisplay').addClass('input-error');
+                 } else {
+
+                   $('#fileDisplay').removeClass('input-error');
+        }
+
                 if (emptyFields.length > 0) {
                     Swal.fire({
                         icon: 'warning',
                         title: 'Data Tidak Lengkap',
                         html: 'Data tersebut wajib diisi:<br><ul style="text-align:left; list-style-position: inside;">' + emptyFields.map(f => `<li>${f}</li>`).join('') + '</ul>'
                     });
-                    return; 
+                    return;
                 }
 
                 // Jika validasi lolos, lanjutkan konfirmasi
@@ -435,12 +444,12 @@
             }).then((result) => {
                 if (result.isConfirmed) {
 
-                    // Aktifkan field requestor 
+                    // Aktifkan field requestor
                     $('#requestor').prop('disabled', false);
 
                     var formData = new FormData($('#sourcelistForm')[0]);
 
-                    // Nonaktifkan kembali 
+                    // Nonaktifkan kembali
                     $('#requestor').prop('disabled', true);
 
                     if (approvalList.length > 0) {
@@ -468,7 +477,7 @@
                                     title: 'Submitted!',
                                     text: response.message
                                 }).then(() => {
-                                    window.location.reload();
+                                    window.location.href = '@Url.Action("IndexMySourceList", "SourceList")';
                                 });
                             } else {
                                 Swal.fire('Error', response.message, 'error');

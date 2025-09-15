@@ -40,7 +40,7 @@ namespace sourcelist.Controllers
                 ModelState.AddModelError("AttachmentFile", "Supplier Assesment Form is required for new suppliers.");
             }
 
-            model.RequestorEmail = UserInfo.Email ;
+            //model.RequestorEmail = UserInfo.Email ;
           
 
             if (ModelState.IsValid)
