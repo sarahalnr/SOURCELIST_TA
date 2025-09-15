@@ -47,29 +47,62 @@ namespace sourcelist.Controllers
             {
                 try // untuk error handling
                 {
-                    string uniqueFileName = null;
+                    string tempFileName = null; 
+
+                    // Simpan file ke folder 
                     if (model.AttachmentFile != null)
                     {
-                        // Path penyimpanan file 
-                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "attachments");
-                        if (!Directory.Exists(uploadsFolder))
+                        
+                        string tempFolder = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", "temp");
+                        if (!Directory.Exists(tempFolder))
                         {
-                            Directory.CreateDirectory(uploadsFolder);
+                            Directory.CreateDirectory(tempFolder);
                         }
 
-                        uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(model.AttachmentFile.FileName);
-                        string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                        tempFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(model.AttachmentFile.FileName);
+                        string tempFilePath = Path.Combine(tempFolder, tempFileName);
 
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                     
+                        using (var fileStream = new FileStream(tempFilePath, FileMode.Create))
                         {
                             await model.AttachmentFile.CopyToAsync(fileStream);
                         }
                     }
 
-                    string newId = await _sourceListService.CreateNewSourceListAsync(model, uniqueFileName);
+                  
+                    string newSourceListId = await _sourceListService.CreateNewSourceListAsync(model, tempFileName);
 
+                  
+                    if (tempFileName != null)
+                    {
+                        string tempFilePath = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", "temp", tempFileName);
+
+                        
+                        if (System.IO.File.Exists(tempFilePath))
+                        {
+                            // path folder 
+                            string finalFolder = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", newSourceListId);
+                            if (!Directory.Exists(finalFolder))
+                            {
+                                Directory.CreateDirectory(finalFolder);
+                            }
+
+                            
+                            string finalFileName = Path.GetFileName(model.AttachmentFile.FileName);
+                            string finalFilePath = Path.Combine(finalFolder, finalFileName);
+
+                         
+                            System.IO.File.Move(tempFilePath, finalFilePath);
+
+                         
+                            string finalRelativePath = Path.Combine("attachments" , newSourceListId, finalFileName).Replace('\\', '/');
+
+                        
+                            await _sourceListService.UpdateAttachmentPathAsync(newSourceListId, finalRelativePath);
+                        }
+                    }
                     // Mengembalikan respons JSON untuk AJAX
-                    return Ok(new { success = true, message = "Data berhasil disimpan!", newId = newId });
+                    return Ok(new { success = true, message = "Data berhasil disimpan!", newId = newSourceListId });
                 }
                 catch (Exception ex)
                 {

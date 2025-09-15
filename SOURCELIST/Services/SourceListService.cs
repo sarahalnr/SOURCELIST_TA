@@ -67,7 +67,29 @@ namespace sourcelist.Services
                     }
                 }
             }
+
+
+
             return newSourceListId;
+
+
+        }
+        public async Task UpdateAttachmentPathAsync(string sourceListId, string attachmentPath)
+        {
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            using (var connection = new SqlConnection(connectionString))
+            {
+                
+                using (var command = new SqlCommand("SOURCELIST_UPDATE_ATTACHMENT_PATH", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@SourceListNumber", sourceListId);
+                    command.Parameters.AddWithValue("@AttachmentPath", string.IsNullOrEmpty(attachmentPath) ? DBNull.Value : attachmentPath);
+
+                    await connection.OpenAsync();
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
         }
 
 

@@ -16,6 +16,8 @@ namespace sourcelist.Services
     {
         Task<string> CreateNewSourceListAsync(SourceListCreateViewModel model, string attachmentFileName);
 
+        Task UpdateAttachmentPathAsync(string sourceListId, string attachmentPath);
+
 
         Task<PagedResult<SourceListDTO>> GetSourceListsByEmailPagedAsync(string email, string requestorName, int page, int pageSize, string searchTerm);
     }
