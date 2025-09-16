@@ -19,6 +19,6 @@ namespace sourcelist.Services
         Task UpdateAttachmentPathAsync(string sourceListId, string attachmentPath);
 
 
-        Task<PagedResult<SourceListDTO>> GetSourceListsByEmailPagedAsync(string email, string requestorName, int page, int pageSize, string searchTerm);
+        Task<PagedResult<SourceListDTO>> GetSourceListsByEmailPagedAsync(string email, int page, int pageSize, string searchTerm);
     }
 }

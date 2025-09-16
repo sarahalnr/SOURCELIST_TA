@@ -34,14 +34,16 @@ namespace sourcelist.Controllers
         public async Task<IActionResult> Create(SourceListCreateViewModel model)
         {
             var UserInfo = HttpContext.Session.GetObjectFromJson<sourcelist.Models.UserInfo>("UserInfo");
+
             if (model.SupplierStatus == "New" && model.AttachmentFile == null)
             {
                 // Jika status "New" tapi tidak ada file, tambahkan error 
                 ModelState.AddModelError("AttachmentFile", "Supplier Assesment Form is required for new suppliers.");
             }
 
-            //model.RequestorEmail = UserInfo.Email ;
-          
+            
+            model.RequestorEmail = UserInfo.Email;
+
 
             if (ModelState.IsValid)
             {
@@ -122,9 +124,9 @@ namespace sourcelist.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            string userFullName = userInfo.FullName;
 
-            var result = await _sourceListService.GetSourceListsByEmailPagedAsync(userInfo.Email, userFullName, page, pageSize, searchTerm);
+            //string userFullName = userInfo.FullName;
+            var result = await _sourceListService.GetSourceListsByEmailPagedAsync(userInfo.Email, page, pageSize, searchTerm);
             ViewBag.Page = page;
             ViewBag.PageSize = pageSize;
             ViewBag.TotalRows = result.TotalRows;

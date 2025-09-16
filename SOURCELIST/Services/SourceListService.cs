@@ -36,6 +36,7 @@ namespace sourcelist.Services
 
                     // Parameter yang dikirim ke Stored Procedure
                     command.Parameters.AddWithValue("@Requestor", model.Requestor);
+                    command.Parameters.AddWithValue("@RequestorEmail", model.RequestorEmail);
                     command.Parameters.AddWithValue("@BAUNumber", model.BAUNumber);
                     command.Parameters.AddWithValue("@PartDescription", model.PartDescription);
                     command.Parameters.AddWithValue("@SupplierName", model.SupplierName);
@@ -94,7 +95,7 @@ namespace sourcelist.Services
 
 
 
-        public async Task<PagedResult<SourceListDTO>> GetSourceListsByEmailPagedAsync(string email, string requestorName, int page, int pageSize, string searchTerm)
+        public async Task<PagedResult<SourceListDTO>> GetSourceListsByEmailPagedAsync(string email, int page, int pageSize, string searchTerm)
         {
             var dataList = new List<SourceListDTO>();
             int totalRows = 0;
@@ -106,7 +107,6 @@ namespace sourcelist.Services
                 {
                     command.CommandType = CommandType.StoredProcedure;
                     command.Parameters.AddWithValue("@EmailLogin", email);
-                    command.Parameters.AddWithValue("@RequestorName", requestorName);
                     command.Parameters.AddWithValue("@PageNumber", page);
                     command.Parameters.AddWithValue("@PageSize", pageSize);
                     command.Parameters.AddWithValue("@SearchTerm", string.IsNullOrEmpty(searchTerm) ? DBNull.Value : searchTerm);
