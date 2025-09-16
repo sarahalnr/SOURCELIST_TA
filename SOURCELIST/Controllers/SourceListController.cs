@@ -45,8 +45,8 @@ namespace sourcelist.Controllers
             model.RequestorEmail = UserInfo.Email;
 
 
-            if (ModelState.IsValid)
-            {
+            //if (ModelState.IsValid)
+            
                 try // untuk error handling
                 {
                     string tempFileName = null; 
@@ -110,7 +110,7 @@ namespace sourcelist.Controllers
                 {
                     return StatusCode(500, new { success = false, message = "Terjadi kesalahan server: " + ex.Message });
                 }
-            }
+            
             return BadRequest(new { success = false, message = "Data yang dikirim tidak valid." });
         }
 
