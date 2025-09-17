@@ -55,11 +55,8 @@
             height: 120px; /*mengatur tinggi text area*/
         }
 
-        .select.input-error + .select2-container--bootstrap-5 .select2-selection {
-            border-color: #e74c3c !important;
-        }
-
-        .input-error {
+        .input-error,
+        .input-error + .select2-container--bootstrap-5 .select2-selection {
             border-color: #e74c3c !important;
         }
 
@@ -96,10 +93,6 @@
 
         #supplierAssessmentForm {
             display: none;
-        }
-
-        .input-error + .select2-container--bootstrap-5 .select2-selection {
-            border-color: #e74c3c !important;
         }
     </style>
 }
@@ -148,6 +141,7 @@
                         <option selected value=""></option>
                         <option value="New">New</option>
                         <option value="Existing">Existing</option>
+                        <option value="Transfer">Transfer</option>
                     </select>
                 </div>
             </div>
@@ -166,14 +160,21 @@
                 <label class="col-sm-3 col-form-label">Supplier Assesment Form</label>
                 <div class="col-sm-9">
                     <div class="file-input-wrapper">
-                        <input type="file" id="supplierAssessmentForm" name="AttachmentFile" accept=".pdf" disabled>
-                        <div id="fileDisplay" class="file-display disabled">
-                            <span id="fileName">No file chosen (PDF file)</span>
-                            <button type="button" id="fileClear" class="file-clear-button" style="display: none;">
+                        <input type="file" id="supplierAssessmentForm" name="AssessmentAttachmentFile" accept=".pdf" disabled>
+                        <div id="assessmentFileDisplay" class="file-display disabled">
+                            <span id="assessmentFileName">No file chosen (PDF file)</span>
+                            <button type="button" id="assessmentFileClear" class="file-clear-button" style="display: none;">
                                 <i class="bi bi-x"></i>
                             </button>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <div class="row mb-3 align-items-center">
+                <label for="supplierEndorsementList" class="col-sm-3 col-form-label">Supplier Endorsement List</label>
+                <div class="col-sm-9">
+                    <input type="text" id="supplierEndorsementList" name="SupplierEndorsementList" class="form-control" disabled required>
                 </div>
             </div>
 
@@ -232,35 +233,54 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         $(document).ready(function() {
 
             const supplierStatusSelect = $('#supplierStatus');
-            const assessmentFormInput = $('#supplierAssessmentForm');
-            const fileDisplay = $('#fileDisplay');
-            const fileNameSpan = $('#fileName');
-            const fileClearButton = $('#fileClear');
 
-            function toggleAssessmentForm() {
-                if (supplierStatusSelect.val() === 'New') {
+            // Assessment Form (File)
+            const assessmentFormInput = $('#supplierAssessmentForm');
+            const assessmentFileDisplay = $('#assessmentFileDisplay');
+            const assessmentFileNameSpan = $('#assessmentFileName');
+            const assessmentFileClearButton = $('#assessmentFileClear');
+
+            // ## SELECTOR UNTUK INPUT BARU ##
+            // Endorsement List (Text)
+            const endorsementListInput = $('#supplierEndorsementList');
+
+            // === Logic to toggle inputs based on Supplier Status ===
+            function toggleConditionalInputs() {
+                const status = supplierStatusSelect.val();
+
+                // Logic for Assessment Form (File)
+                if (status === 'New') {
                     assessmentFormInput.prop('disabled', false);
-                    fileDisplay.removeClass('disabled');
+                    assessmentFileDisplay.removeClass('disabled');
                 } else {
-                    assessmentFormInput.prop('disabled', true);
-                    fileDisplay.addClass('disabled');
-                    // Reset file jika dinonaktifkan
-                    assessmentFormInput.val('');
-                    fileNameSpan.text('No file chosen (PDF file)');
-                    fileClearButton.hide();
+                    assessmentFormInput.prop('disabled', true).val('');
+                    assessmentFileDisplay.addClass('disabled');
+                    assessmentFileNameSpan.text('No file chosen (PDF file)');
+                    assessmentFileClearButton.hide();
+                    assessmentFileDisplay.removeClass('input-error');
+                }
+
+                // LOGIC ENDORSEMENT LIST 
+                if (status === 'Transfer') {
+                    endorsementListInput.prop('disabled', false);
+                } else {
+                    endorsementListInput.prop('disabled', true).val('');
+                    endorsementListInput.removeClass('input-error');
                 }
             }
 
-            toggleAssessmentForm();
-            supplierStatusSelect.on('change', toggleAssessmentForm);
+            toggleConditionalInputs();
+            supplierStatusSelect.on('change', toggleConditionalInputs);
 
-            fileDisplay.on('click', function(e) {
-                if (!$(this).hasClass('disabled') && !$(e.target).is(fileClearButton.find('i'))) {
+            // File Input Handlers for Assessment Form
+            assessmentFileDisplay.on('click', function(e) {
+                if (!$(this).hasClass('disabled') && !$(e.target).closest(assessmentFileClearButton).length) {
                     assessmentFormInput.click();
                 }
             });
@@ -268,26 +288,29 @@
             //  Saat file di input lama berubah, perbarui kolom input
             assessmentFormInput.on('change', function() {
                 if (this.files && this.files.length > 0) {
-                    fileNameSpan.text(this.files[0].name);
-                    fileClearButton.show();
+                    assessmentFileNameSpan.text(this.files[0].name);
+                    assessmentFileClearButton.show();
+                    assessmentFileDisplay.removeClass('input-error');
                 } else {
-                    fileNameSpan.text('No file chosen (PDF file)');
-                    fileClearButton.hide();
+                    assessmentFileNameSpan.text('No file chosen (PDF file)');
+                    assessmentFileClearButton.hide();
                 }
             });
             // Saat tombol silang diklik, reset semuanya
-            fileClearButton.on('click', function() {
+            assessmentFileClearButton.on('click', function() {
                 assessmentFormInput.val('');
-                fileNameSpan.text('No file chosen (PDF file)');
+                assessmentFileNameSpan.text('No file chosen (PDF file)');
                 $(this).hide();
             });
 
+            // Select2 Initialization 
              $('#supplierStatus, #sourceListStatus').select2({
                 theme: 'bootstrap-5',
                 width: '100%',
                 placeholder: "-- select --"
             });
 
+            // Approver Logic 
             let approvalList = [];
             const addApproverBtn = $('#addApproverBtn');
             const approverDropdown = $('#approverDropdown');
@@ -316,10 +339,7 @@
 
             // untuk button "Add Approver"
             addApproverBtn.on('click', function() {
-                if (approvalList.length > 0) {
-                    return;
-                }
-
+                if (approvalList.length > 0) { return; }
                 const selectedApprover = approverDropdown.select2('data')[0];
 
                 if (!selectedApprover || !selectedApprover.id) {
@@ -378,7 +398,7 @@
             $('#sourcelistForm [required]').on('input change', function () {
                 if ($(this).val() && $(this).val().trim() !== "") {
                     $(this).removeClass("input-error");
-                    if ($(this).is('select')) {
+                     if ($(this).is('select')) {
                         $(this).next('.select2-container').find('.select2-selection').removeClass('input-error');
                     }
                 }
@@ -386,6 +406,9 @@
 
             //  button submit
             $('#btnSubmit').on('click', function() {
+                // Hapus semua error-border sebelum validasi ulang
+                $('#sourcelistForm .input-error').removeClass('input-error');
+
                 const fieldsToValidate = [
                     { id: 'bauNo', label: 'BAU No. / Part Number' },
                     { id: 'partDesc', label: 'Part Description' },
@@ -397,16 +420,20 @@
                     { id: 'reasonSubmission', label: 'Reason of Submission' }
                 ];
 
+                // ## TAMBAHKAN INPUT BARU KE VALIDASI JIKA DIPERLUKAN ##
+                if (supplierStatusSelect.val() === 'Transfer') {
+                    fieldsToValidate.push({ id: 'supplierEndorsementList', label: 'Supplier Endorsement List' });
+                }
+
                 let emptyFields = [];
                 fieldsToValidate.forEach(field => {
                     const el = $('#' + field.id);
-                    el.removeClass('input-error');
-                    if (el.is('select')) { el.next('.select2-container').find('.select2-selection').removeClass('input-error'); }
-
                     if (!el.val() || el.val().trim() === '') {
                         emptyFields.push(field.label);
                         el.addClass('input-error');
-                        if (el.is('select')) { el.next('.select2-container').find('.select2-selection').addClass('input-error'); }
+                        if (el.is('select')) {
+                           el.next('.select2-container').find('.select2-selection').addClass('input-error');
+                        }
                     }
                 });
 
@@ -417,79 +444,77 @@
                 }
 
                 //validasi assessmentform
-                 if ($('#supplierStatus').val() === 'New' && $('#supplierAssessmentForm').get(0).files.length === 0) {
-                      emptyFields.push('Supplier Assesment Form');
-                     $('#fileDisplay').addClass('input-error');
-                 } else {
-
-                   $('#fileDisplay').removeClass('input-error');
-        }
+                if (supplierStatusSelect.val() === 'New' && assessmentFormInput.get(0).files.length === 0) {
+                    emptyFields.push('Supplier Assesment Form');
+                    assessmentFileDisplay.addClass('input-error');
+                }
 
                 if (emptyFields.length > 0) {
                     Swal.fire({
                         icon: 'warning',
                         title: 'Data Tidak Lengkap',
-                        html: 'Data tersebut wajib diisi:<br><ul style="text-align:left; list-style-position: inside;">' + emptyFields.map(f => `<li>${f}</li>`).join('') + '</ul>'
+                        html: 'Data berikut wajib diisi:<br><ul style="text-align:left; list-style-position: inside;">' + emptyFields.map(f => `<li>${f}</li>`).join('') + '</ul>'
                     });
                     return;
                 }
 
                 // Jika validasi lolos, lanjutkan konfirmasi
-                        Swal.fire({
-                title: 'Konfirmasi',
-                text: "Apakah Anda yakin semua data sudah benar?",
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Yes, Submit!'
-            }).then((result) => {
-                if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Konfirmasi',
+                    text: "Apakah Anda yakin semua data sudah benar?",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Submit!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Aktifkan semua field disabled agar nilainya terkirim
+                        $('#requestor, #supplierEndorsementList').prop('disabled', false);
 
-                    // Aktifkan field requestor
-                    $('#requestor').prop('disabled', false);
-
-                    var formData = new FormData($('#sourcelistForm')[0]);
+                        var formData = new FormData($('#sourcelistForm')[0]);
 
                     // Nonaktifkan kembali
-                    $('#requestor').prop('disabled', true);
+                        $('#requestor').prop('disabled', true);
+                        toggleConditionalInputs(); // Kembalikan ke state semula
 
-                    if (approvalList.length > 0) {
-                        formData.append('ApproverName', approvalList[0].ApproverName);
-                        formData.append('ApproverEmail', approvalList[0].ApproverEmail);
-                    }
+                        if (approvalList.length > 0) {
+                            formData.append('ApproverId', approvalList[0].ApproverId);
+                            formData.append('ApproverName', approvalList[0].ApproverName);
+                            formData.append('ApproverEmail', approvalList[0].ApproverEmail);
+                        }
 
-                    Swal.fire({
-                        title: 'Submitting...',
-                        text: 'Please wait while we process your request.',
-                        allowOutsideClick: false,
-                        didOpen: () => { Swal.showLoading(); }
-                    });
+                        Swal.fire({
+                            title: 'Submitting...',
+                            text: 'Mohon tunggu selagi kami memproses permintaan Anda.',
+                            allowOutsideClick: false,
+                            didOpen: () => { Swal.showLoading(); }
+                        });
 
-                    $.ajax({
-                        url: '@Url.Action("Create", "SourceList")',
-                        type: 'POST',
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        success: function (response) {
-                            if (response.success) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Submitted!',
-                                    text: response.message
-                                }).then(() => {
-                                    window.location.href = '@Url.Action("IndexMySourceList", "SourceList")';
-                                });
-                            } else {
-                                Swal.fire('Error', response.message, 'error');
+                        $.ajax({
+                            url: '@Url.Action("Create", "SourceList")',
+                            type: 'POST',
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            success: function (response) {
+                                if (response.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Berhasil!',
+                                        text: response.message
+                                    }).then(() => {
+                                        window.location.href = '@Url.Action("IndexMySourceList", "SourceList")';
+                                    });
+                                } else {
+                                    Swal.fire('Error', response.message, 'error');
+                                }
+                            },
+                            error: function (jqXHR) {
+                                var errorMsg = "Terjadi kesalahan yang tidak diketahui.";
+                                if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
+                                    errorMsg = jqXHR.responseJSON.message;
+                                }
+                                Swal.fire('Permintaan Gagal', errorMsg, 'error');
                             }
-                        },
-                        error: function (jqXHR) {
-                            var errorMsg = "An unknown error occurred.";
-                            if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
-                                errorMsg = jqXHR.responseJSON.message;
-                            }
-                            Swal.fire('Request Failed', errorMsg, 'error');
-                       }
                         });
                     }
                 });

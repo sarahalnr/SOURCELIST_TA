@@ -35,7 +35,7 @@ namespace sourcelist.Controllers
         {
             var UserInfo = HttpContext.Session.GetObjectFromJson<sourcelist.Models.UserInfo>("UserInfo");
 
-            if (model.SupplierStatus == "New" && model.AttachmentFile == null)
+            if (model.SupplierStatus == "New" && model.AssessmentAttachmentFile == null)
             {
                 // Jika status "New" tapi tidak ada file, tambahkan error 
                 ModelState.AddModelError("AttachmentFile", "Supplier Assesment Form is required for new suppliers.");
@@ -52,7 +52,7 @@ namespace sourcelist.Controllers
                     string tempFileName = null; 
 
                     // Simpan file ke folder 
-                    if (model.AttachmentFile != null)
+                    if (model.AssessmentAttachmentFile != null)
                     {
                         
                         string tempFolder = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", "temp");
@@ -61,13 +61,13 @@ namespace sourcelist.Controllers
                             Directory.CreateDirectory(tempFolder);
                         }
 
-                        tempFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(model.AttachmentFile.FileName);
+                        tempFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(model.AssessmentAttachmentFile.FileName);
                         string tempFilePath = Path.Combine(tempFolder, tempFileName);
 
                      
                         using (var fileStream = new FileStream(tempFilePath, FileMode.Create))
                         {
-                            await model.AttachmentFile.CopyToAsync(fileStream);
+                            await model.AssessmentAttachmentFile.CopyToAsync(fileStream);
                         }
                     }
 
@@ -90,7 +90,7 @@ namespace sourcelist.Controllers
                             }
 
                             
-                            string finalFileName = Path.GetFileName(model.AttachmentFile.FileName);
+                            string finalFileName = Path.GetFileName(model.AssessmentAttachmentFile.FileName);
                             string finalFilePath = Path.Combine(finalFolder, finalFileName);
 
                          
