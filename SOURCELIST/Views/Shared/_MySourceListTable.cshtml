@@ -1,56 +1,70 @@
-﻿@model List<sourcelist.DTOs.SourceListDTO>
+﻿@model sourcelist.Services.PagedResult<sourcelist.DTOs.SourceListDTO>
 
 @{
     int page = ViewBag.Page ?? 1;
     int pageSize = ViewBag.PageSize ?? 10;
     int totalRows = ViewBag.TotalRows ?? 0;
     int totalPages = (int)Math.Ceiling((double)totalRows / pageSize);
+    int startRow = (page - 1) * pageSize + 1;
+    int endRow = startRow + Model.Data.Count() - 1;
 
     int maxPagesToShow = 5;
     int startPage = Math.Max(1, page - maxPagesToShow / 2);
     int endPage = Math.Min(totalPages, startPage + maxPagesToShow - 1);
     startPage = Math.Max(1, endPage - maxPagesToShow + 1);
+
 }
 
 <div class="table-responsive">
-    <table class="table table-bordered table-hover align-middle myfair-table" style="font-size:.85rem;">
+    <table id="mysourcelist-table" class="table table-bordered table-hover align-middle myfair-table" style="font-size:.85rem;">
         <thead class="table-light">
             <tr>
                 <th>Sourcelist Number</th>
                 <th>Requestor</th>
-                <th>BAU Number</th>
+                <th>Submit Date</th>
+                <th>Approval Status</th>
                 <th>Part Description</th>
-                <th>Supplier Name</th>
-                <th>Status</th>
+                <th>Supplier</th>
+                <th>Vendor Code</th>
+                <th>Reason Submission</th>
                 <th>Action</th>
             </tr>
         </thead>
         <tbody>
-            @if (Model != null && Model.Any())
+            @if (Model.Data != null && Model.Data.Any())
             {
-                foreach (var item in Model)
+                foreach (var item in Model.Data)
                 {
-                    var status = item.SourceListStatus?.Trim().ToUpper() ?? "NEW";
+                    var displayStatus = !string.IsNullOrEmpty(item.ApproverStatus) ? item.ApproverStatus : item.SourceListStatus;
+                    var status = displayStatus?.Trim().ToUpper() ?? "NEW";
                     string statusClass = status switch
                     {
                         "NEW" => "status-NEW",
-                        "APPROVED" => "status-APPROVED",
-                        "REJECTED" => "status-REJECTED",
+                        "FOR REVIEW" => "status-FORREVIEW",
                         "FOR APPROVAL" => "status-FORAPPROVAL",
+                        "APPROVED" => "status-APPROVED",
+                        "UPDATED" => "status-UPDATED",
+                        "CLOSED" => "status-CLOSED",
+                        "MEASUREMENT UPDATED" => "status-UPDATED",
+                        "COMPLETE REVIEW" => "status-COMPLETEREVIEW",
+                        "COMPLETED" => "status-APPROVED",
+                        "DELETED" => "status-DELETED",
                         _ => "status-NEW"
-                    };
 
+                    };
                     <tr>
                         <td>@item.SourceListNumber</td>
                         <td>@item.Requestor</td>
-                        <td>@item.BAUNumber</td>
+                        <td>@item.SubmittedDate.ToString("dd MMM yyyy")</td>
+                        <td>
+                            <span class="status-badge @statusClass">@displayStatus</span>
+                        </td>
                         <td>@item.PartDescription</td>
                         <td>@item.SupplierName</td>
+                        <td>@item.VendorCode</td>
+                        <td>@item.ReasonSubmission</td>
                         <td>
-                            <span class="status-badge @statusClass">@item.SourceListStatus</span>
-                        </td>
-                        <td>
-                            <a asp-action="Detail" asp-controller="SourceList" asp-route-id="@item.SourceListNumber" class="btn btn-sm btn-info">View</a>
+                            <a asp-action="Detail" asp-controller="SourceList" asp-route-id="@item.SourceListNumber" class="btn btn-view btn-sm">View</a>
                         </td>
                     </tr>
                 }
@@ -58,12 +72,23 @@
             else
             {
                 <tr>
-                    <td colspan="7" class="text-center text-muted">No SourceList data found.</td>
+                    <td colspan="9" class="text-center text-muted">Data SourceList tidak ditemukan.</td>
                 </tr>
             }
         </tbody>
     </table>
 </div>
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <div class="text-muted" style="font-size:.85rem;">
+        @if (totalRows > 0)
+        {
+            <span>Showing @startRow-@endRow of @totalRows rows</span>
+        }
+        else
+        {
+            <span>No data found</span>
+        }
+    </div>
 
 @if (totalPages > 1)
 {
@@ -72,7 +97,6 @@
             <li class="page-item @(page == 1 ? "disabled" : "")">
                 <a class="page-link" href="#" data-page="@(page - 1)">Previous</a>
             </li>
-
             @if (startPage > 1)
             {
                 <li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>
@@ -81,14 +105,12 @@
                     <li class="page-item disabled"><span class="page-link">...</span></li>
                 }
             }
-
             @for (int i = startPage; i <= endPage; i++)
             {
                 <li class="page-item @(i == page ? "active" : "")">
                     <a class="page-link" href="#" data-page="@i">@i</a>
                 </li>
             }
-
             @if (endPage < totalPages)
             {
                 @if (endPage < totalPages - 1)
@@ -97,10 +119,54 @@
                 }
                 <li class="page-item"><a class="page-link" href="#" data-page="@totalPages">@totalPages</a></li>
             }
-
             <li class="page-item @(page == totalPages ? "disabled" : "")">
                 <a class="page-link" href="#" data-page="@(page + 1)">Next</a>
             </li>
         </ul>
     </nav>
+
 }
+
+
+
+
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+    $(function () {
+        $('.column-filter').on('keyup change', function () {
+            var filters = [];
+            $('.column-filter').each(function () {
+                filters.push($(this).val()?.toLowerCase());
+
+            });
+
+            $('#mysourcelist-table tbody tr').each(function () {
+                var row = $(this);
+                var show = true;
+                row.find('td').each(function (i) {
+                    if (filters[i] && i < filters.length) {
+                        var cellText = $(this).text().toLowerCase();
+                        if (!cellText.includes(filters[i])) {
+                            show = false;
+                        }
+                    }
+                });
+                row.toggle(show);
+            });
+        });
+
+        // Handling pagination click
+        $('.page-link').on('click', function (e) {
+            e.preventDefault();
+            var targetPage = $(this).data('page');
+            if (targetPage && !$(this).parent().hasClass('disabled') && !$(this).parent().hasClass('active')) {
+                // TODO: Replace this with real load (could be via AJAX or full page post)
+                console.log("Go to page: " + targetPage);
+                // window.location.href = "?page=" + targetPage;  // contoh jika pakai query string
+                // atau buat post ke controller
+            }
+        });
+    });
+
+</script>

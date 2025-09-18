@@ -115,21 +115,31 @@ namespace sourcelist.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> IndexMySourceList(int page = 1, int pageSize = 10, string searchTerm = null, bool isAjax = false)
+        public async Task<IActionResult> IndexMySourceList(
+            int page = 1,
+            int pageSize = 10,
+            string sortColumn = "SubmitDate",
+            string sortDirection = "DESC",
+            string searchTerm = null,
+            bool isAjax = false)
         {
-            
-            var userInfo = HttpContext.Session.GetObjectFromJson<UserInfo>("UserInfo");
-            if (userInfo == null)
+
+            var UserInfo = HttpContext.Session.GetObjectFromJson<sourcelist.Models.UserInfo>("UserInfo");
+            if (UserInfo == null)
             {
+                TempData["SweetAlertMessage"] = "Session not found. You are redirecting to Home.";
+                TempData["SweetAlertType"] = "error";
+                TempData["SweetAlertRedirect"] = Url.Action("Index", "Home");
                 return RedirectToAction("Index", "Home");
             }
 
-
-            //string userFullName = userInfo.FullName;
-            var result = await _sourceListService.GetSourceListsByEmailPagedAsync(userInfo.Email, page, pageSize, searchTerm);
+            string email = UserInfo.Email;
+            var result = await _sourceListService.GetSourceListsByEmailPagedAsync(email, page, pageSize, sortColumn, sortDirection, searchTerm);
             ViewBag.Page = page;
             ViewBag.PageSize = pageSize;
             ViewBag.TotalRows = result.TotalRows;
+            ViewBag.SortColumn = sortColumn;
+            ViewBag.SortDirection = sortDirection;
             ViewBag.SearchTerm = searchTerm;
 
             if (isAjax)
@@ -138,7 +148,7 @@ namespace sourcelist.Controllers
                 return PartialView("_MySourceListTable", result); 
             }
 
-            return View(result.Data); 
+            return View(result);
         }
 
         [HttpGet]
