@@ -28,35 +28,41 @@
 </div>
 
 @section Scripts {
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
-        $(document).ready(function() {
-            $(document).on('click', '.pagination a', function(e) {
-                e.preventDefault();
+        let typingTimer;
+        const doneTypingInterval = 500; 
 
-             
-                var page = $(this).data('page');
-                var searchTerm = $("#searchInput").val();
+       
+        function loadSourceList(page = 1) {
+            let searchTerm = $('#searchBox').val();
+            $('#sourceListTableContainer').html('<p class="text-center">Loading...</p>');
 
-         
-                $('#sourceListTableContainer').html('<p class="text-center">Loading...</p>');
-
-                $.ajax({
-                    url: '@Url.Action("IndexMySourceList")',
-                    type: 'GET',
-                    data: {
-                        page: page,
-                        searchTerm: searchTerm,
-                        isAjax: true
-                    },
-                    success: function(response) {
-                        $('#sourceListTableContainer').html(response);
-                    },
-                    error: function() {
-                        // Tampilkan pesan error jika gagal
-                        $('#sourceListTableContainer').html('<p class="text-center text-danger">Failed to load data.</p>');
-                    }
-                });
+            $.get('@Url.Action("IndexMySourceList")', {
+                page: page,
+                searchTerm: searchTerm,
+                isAjax: true
+            }, function (data) {
+                $('#sourceListTableContainer').html(data);
             });
+        }
+
+        $('#searchBox').on('keyup', function () {
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(function () {
+                loadSourceList(1);
+            }, doneTypingInterval);
+        }).on('keydown', function () {
+            clearTimeout(typingTimer);
+        });
+
+        
+        $(document).on('click', '#sourceListTableContainer .pagination .page-link', function (e) {
+            e.preventDefault();
+            let page = $(this).data('page');
+            if (page && !$(this).parent().hasClass('disabled') && !$(this).parent().hasClass('active')) {
+                loadSourceList(page);
+            }
         });
     </script>
 }

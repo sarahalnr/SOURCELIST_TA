@@ -47,7 +47,16 @@ namespace sourcelist.Services
                     command.Parameters.AddWithValue("@ReasonSubmission", model.ReasonSubmission);
                     command.Parameters.AddWithValue("@ApproverName", model.ApproverName);
                     command.Parameters.AddWithValue("@ApproverEmail", model.ApproverEmail);
-                    command.Parameters.AddWithValue("@EndorsementList", model.SupplierEndorsementList);
+
+                    if (!string.IsNullOrEmpty(model.SupplierEndorsementList))
+                    {
+                       
+                        command.Parameters.AddWithValue("@EndorsementList", model.SupplierEndorsementList);
+                    }
+                    else
+                    {
+                        command.Parameters.AddWithValue("@EndorsementList", DBNull.Value);
+                    }
 
 
                     if (string.IsNullOrEmpty(attachmentFileName))
