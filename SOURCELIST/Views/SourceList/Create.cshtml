@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
     <style>
-
+    
         html, body {
             height: 100%;
             margin: 0;
@@ -52,11 +52,10 @@
         }
 
         .textarea-tall {
-            height: 120px; /*mengatur tinggi text area*/
+            height: 120px;
         }
 
-        .input-error,
-        .input-error + .select2-container--bootstrap-5 .select2-selection {
+        .input-error, .input-error + .select2-container--bootstrap-5 .select2-selection {
             border-color: #e74c3c !important;
         }
 
@@ -91,7 +90,8 @@
             font-size: 1.2rem;
         }
 
-        #supplierAssessmentForm {
+
+        #supplierAssessmentForm, #endorsementForm {
             display: none;
         }
     </style>
@@ -107,54 +107,39 @@
             <div class="row mb-3 align-items-center">
                 <label for="requestor" class="col-sm-3 col-form-label">Requestor</label>
                 <div class="col-sm-9">
-                    <input type="text" id="requestor" name="Requestor" class="form-control" disabled="disabled" value="@userInfo?.FullName">
-                </div>
-            </div>
+                    <input type="text" id="requestor" name="Requestor" class="form-control" disabled="disabled" value="@userInfo?.FullName"></div>
+             </div>
             <div class="row mb-3 align-items-center">
                 <label for="bauNo" class="col-sm-3 col-form-label">BAU No. / Part Number</label>
-                <div class="col-sm-9">
-                    <input type="text" id="bauNo" name="BAUNumber" class="form-control" required>
-                </div>
+                <div class="col-sm-9"><input type="text" id="bauNo" name="BAUNumber" class="form-control" required></div>
             </div>
             <div class="row mb-3 align-items-center">
                 <label for="partDesc" class="col-sm-3 col-form-label">Part Description</label>
-                <div class="col-sm-9">
-                    <input type="text" id="partDesc" name="PartDescription" class="form-control" required>
-                </div>
+                <div class="col-sm-9"><input type="text" id="partDesc" name="PartDescription" class="form-control" required></div>
             </div>
             <div class="row mb-3 align-items-center">
                 <label for="supplierName" class="col-sm-3 col-form-label">Supplier Name</label>
-                <div class="col-sm-9">
-                    <input type="text" id="supplierName" name="SupplierName" class="form-control" required>
-                </div>
+                <div class="col-sm-9"><input type="text" id="supplierName" name="SupplierName" class="form-control" required></div>
             </div>
             <div class="row mb-3 align-items-center">
                 <label for="vendorCode" class="col-sm-3 col-form-label">Vendor Code</label>
-                <div class="col-sm-9">
-                    <input type="text" id="vendorCode" name="VendorCode" class="form-control" required>
-                </div>
+                <div class="col-sm-9"><input type="text" id="vendorCode" name="VendorCode" class="form-control" required></div>
             </div>
             <div class="row mb-3 align-items-center">
                 <label for="supplierStatus" class="col-sm-3 col-form-label">Supplier status</label>
-                <div class="col-sm-5">
-                    <select id="supplierStatus" name="SupplierStatus" class="form-select" required>
-                        <option selected value=""></option>
-                        <option value="New">New</option>
-                        <option value="Existing">Existing</option>
-                        <option value="Transfer">Transfer</option>
-                    </select>
+                <div class="col-sm-5"><select id="supplierStatus" name="SupplierStatus" class="form-select" required>
+                    <option selected value=""></option>
+                    <option value="New">New</option>
+                    <option value="Existing">Existing</option>
+                    <option value="Transfer">Transfer</option></select></div>
                 </div>
-            </div>
             <div class="row mb-3 align-items-center">
                 <label for="sourceListStatus" class="col-sm-3 col-form-label">Source list status</label>
-                <div class="col-sm-5">
-                    <select id="sourceListStatus" name="SourceListStatus" class="form-select" required>
-                        <option selected></option>
-                        <option value="New">New</option>
-                        <option value="Extend">Extend</option>
-                    </select>
+                <div class="col-sm-5"><select id="sourceListStatus" name="SourceListStatus" class="form-select" required>
+                    <option selected></option>
+                    <option value="New">New</option>
+                    <option value="Extend">Extend</option></select></div>
                 </div>
-            </div>
 
             <div class="row mb-3 align-items-center">
                 <label class="col-sm-3 col-form-label">Supplier Assesment Form</label>
@@ -163,71 +148,34 @@
                         <input type="file" id="supplierAssessmentForm" name="AssessmentAttachmentFile" accept=".pdf" disabled>
                         <div id="assessmentFileDisplay" class="file-display disabled">
                             <span id="assessmentFileName">No file chosen (PDF file)</span>
-                            <button type="button" id="assessmentFileClear" class="file-clear-button" style="display: none;">
-                                <i class="bi bi-x"></i>
-                            </button>
+                            <button type="button" id="assessmentFileClear" class="file-clear-button" style="display: none;"><i class="bi bi-x"></i></button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="row mb-3 align-items-center">
-                <label for="supplierEndorsementList" class="col-sm-3 col-form-label">Supplier Endorsement List</label>
+                <label class="col-sm-3 col-form-label">Supplier Endorsement List</label>
                 <div class="col-sm-9">
-                    <input type="text" id="supplierEndorsementList" name="SupplierEndorsementList" class="form-control" disabled required>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="endorsementForm" name="AttachedEndorsementFile" accept=".pdf" disabled>
+                        <div id="endorsementFileDisplay" class="file-display disabled">
+                            <span id="endorsementFileName">No file chosen (PDF file)</span>
+                            <button type="button" id="endorsementFileClear" class="file-clear-button" style="display: none;"><i class="bi bi-x"></i></button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="row mb-3 align-items-center">
-                <label for="cmsFinalCrb" class="col-sm-3 col-form-label">CMS# of Final CRB</label>
-                <div class="col-sm-9">
-                    <input type="text" id="cmsFinalCrb" name="CMSFinalCRB" class="form-control" required>
-                </div>
-            </div>
+            <div class="row mb-3 align-items-center"><label for="cmsFinalCrb" class="col-sm-3 col-form-label">CMS# of Final CRB</label><div class="col-sm-9"><input type="text" id="cmsFinalCrb" name="CMSFinalCRB" class="form-control" required></div></div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="row mb-3">
-                <label for="reasonSubmission" class="col-sm-2 col-form-label pt-0">Reason of Submission</label>
-                <div class="col-sm-10">
-                    <textarea id="reasonSubmission" name="ReasonSubmission" class="form-control textarea-tall" required></textarea>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div class="row"><div class="col-lg-12"><div class="row mb-3"><label for="reasonSubmission" class="col-sm-2 col-form-label pt-0">Reason of Submission</label><div class="col-sm-10"><textarea id="reasonSubmission" name="ReasonSubmission" class="form-control textarea-tall" required></textarea></div></div></div></div>
 
-    <div class="form-header mt-4">
-        Approval
-    </div>
-    <div class="row">
-        <div class="col-md-4">
-            <div class="mb-3">
-                <label for="approverDropdown" class="form-label fw-bold">Approver</label>
-
-                <div class="input-group">
-                    <select id="approverDropdown" class="form-select" required></select>
-                    <button type="button" id="addApproverBtn" class="btn btn-success" style="margin-left: 8px; border-radius:8px;">Add Approver</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <table id="approvalTable" class="table table-hover mt-3" style="width: 60%; display: none;">
-        <thead class="table-light">
-            <tr>
-                <th style="width: 40%;">Approver Name</th>
-                <th style="width: 40%;">Email</th>
-                <th style="width: 20%;">Action</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
-
-    <div class="d-flex justify-content-end mt-4">
-        <button type="button" class="btn btn-primary" id="btnSubmit">Submit</button>
-    </div>
+    <div class="form-header mt-4">Approval</div>
+    <div class="row"><div class="col-md-4"><div class="mb-3"><label for="approverDropdown" class="form-label fw-bold">Approver</label><div class="input-group"><select id="approverDropdown" class="form-select" required></select><button type="button" id="addApproverBtn" class="btn btn-success" style="margin-left: 8px; border-radius:8px;">Add Approver</button></div></div></div></div>
+    <table id="approvalTable" class="table table-hover mt-3" style="width: 60%; display: none;"><thead class="table-light"><tr><th style="width: 40%;">Approver Name</th><th style="width: 40%;">Email</th><th style="width: 20%;">Action</th></tr></thead><tbody></tbody></table>
+    <div class="d-flex justify-content-end mt-4"><button type="button" class="btn btn-primary" id="btnSubmit">Submit</button></div>
 </form>
 
 @section Scripts {
@@ -236,169 +184,130 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+  
         $(document).ready(function() {
-
+       
             const supplierStatusSelect = $('#supplierStatus');
+            const form = $('#sourcelistForm');
 
-            // Assessment Form (File)
-            const assessmentFormInput = $('#supplierAssessmentForm');
-            const assessmentFileDisplay = $('#assessmentFileDisplay');
-            const assessmentFileNameSpan = $('#assessmentFileName');
-            const assessmentFileClearButton = $('#assessmentFileClear');
+            const assessmentFileInput = {
+                input: $('#supplierAssessmentForm'),
+                display: $('#assessmentFileDisplay'),
+                fileName: $('#assessmentFileName'),
+                clearButton: $('#assessmentFileClear')
+            };
 
-            // ## SELECTOR UNTUK INPUT BARU ##
-            // Endorsement List (Text)
-            const endorsementListInput = $('#supplierEndorsementList');
+            const endorsementFileInput = {
+                input: $('#endorsementForm'),
+                display: $('#endorsementFileDisplay'),
+                fileName: $('#endorsementFileName'),
+                clearButton: $('#endorsementFileClear')
+            };
 
-            // === Logic to toggle inputs based on Supplier Status ===
+            const approver = {
+                dropdown: $('#approverDropdown'),
+                addButton: $('#addApproverBtn'),
+                table: $('#approvalTable'),
+                tableBody: $('#approvalTable tbody')
+            };
+            let approvalList = [];
+
+
+            function setupFileInput(fileSet) {
+                fileSet.display.on('click', function(e) {
+                    if (!$(this).hasClass('disabled') && !$(e.target).closest(fileSet.clearButton).length) {
+                        fileSet.input.click();
+                    }
+                });
+                fileSet.input.on('change', function() {
+                    if (this.files && this.files.length > 0) {
+                        fileSet.fileName.text(this.files[0].name);
+                        fileSet.clearButton.show();
+                        fileSet.display.removeClass('input-error');
+                    } else {
+                        fileSet.fileName.text('No file chosen (PDF file)');
+                        fileSet.clearButton.hide();
+                    }
+                });
+                fileSet.clearButton.on('click', function() {
+                    fileSet.input.val('').trigger('change');
+                });
+            }
+
             function toggleConditionalInputs() {
                 const status = supplierStatusSelect.val();
-
-                // Logic for Assessment Form (File)
-                if (status === 'New') {
-                    assessmentFormInput.prop('disabled', false);
-                    assessmentFileDisplay.removeClass('disabled');
-                } else {
-                    assessmentFormInput.prop('disabled', true).val('');
-                    assessmentFileDisplay.addClass('disabled');
-                    assessmentFileNameSpan.text('No file chosen (PDF file)');
-                    assessmentFileClearButton.hide();
-                    assessmentFileDisplay.removeClass('input-error');
-                }
-
-                // LOGIC ENDORSEMENT LIST 
-                if (status === 'Transfer') {
-                    endorsementListInput.prop('disabled', false);
-                } else {
-                    endorsementListInput.prop('disabled', true).val('');
-                    endorsementListInput.removeClass('input-error');
-                }
+                const manageState = (fileSet, isEnabled) => {
+                    fileSet.input.prop('disabled', !isEnabled);
+                    fileSet.display.toggleClass('disabled', !isEnabled);
+                    if (!isEnabled) {
+                        fileSet.input.val('').trigger('change');
+                        fileSet.display.removeClass('input-error');
+                    }
+                };
+                manageState(assessmentFileInput, status === 'New');
+                manageState(endorsementFileInput, status === 'Transfer');
             }
 
-            toggleConditionalInputs();
-            supplierStatusSelect.on('change', toggleConditionalInputs);
-
-            // File Input Handlers for Assessment Form
-            assessmentFileDisplay.on('click', function(e) {
-                if (!$(this).hasClass('disabled') && !$(e.target).closest(assessmentFileClearButton).length) {
-                    assessmentFormInput.click();
-                }
-            });
-
-            //  Saat file di input lama berubah, perbarui kolom input
-            assessmentFormInput.on('change', function() {
-                if (this.files && this.files.length > 0) {
-                    assessmentFileNameSpan.text(this.files[0].name);
-                    assessmentFileClearButton.show();
-                    assessmentFileDisplay.removeClass('input-error');
-                } else {
-                    assessmentFileNameSpan.text('No file chosen (PDF file)');
-                    assessmentFileClearButton.hide();
-                }
-            });
-            // Saat tombol silang diklik, reset semuanya
-            assessmentFileClearButton.on('click', function() {
-                assessmentFormInput.val('');
-                assessmentFileNameSpan.text('No file chosen (PDF file)');
-                $(this).hide();
-            });
-
-            // Select2 Initialization 
-             $('#supplierStatus, #sourceListStatus').select2({
-                theme: 'bootstrap-5',
-                width: '100%',
-                placeholder: "-- select --"
-            });
-
-            // Approver Logic 
-            let approvalList = [];
-            const addApproverBtn = $('#addApproverBtn');
-            const approverDropdown = $('#approverDropdown');
-
-
-            approverDropdown.select2({
-                theme: 'bootstrap-5',
-                placeholder: '-- Search Approver --',
-                allowClear: true,
-                minimumInputLength: 3,
-                ajax: {
-                    url: '@Url.Action("SearchApprovers", "SourceList")',
-                    dataType: 'json',
-                    delay: 250,
-                    data: function (params) { return { term: params.term }; },
-                    processResults: function (data) { return { results: data }; }
-                },
-                templateResult: function (data) {
-                    if (!data.id) return data.text;
-                    return $(`<div><strong>${data.text}</strong><br><small>${data.email || ''}</small></div>`);
-                },
-                templateSelection: function (data) {
-                    return data.text;
-                }
-            });
-
-            // untuk button "Add Approver"
-            addApproverBtn.on('click', function() {
-                if (approvalList.length > 0) { return; }
-                const selectedApprover = approverDropdown.select2('data')[0];
-
-                if (!selectedApprover || !selectedApprover.id) {
-                    Swal.fire('Oops...', 'Please select an approver first!', 'warning');
-                    return;
-                }
-
-                approvalList.push({
-                    ApproverId: selectedApprover.id,
-                    ApproverName: selectedApprover.text,
-                    ApproverEmail: selectedApprover.email,
-                    ApproverBadge: selectedApprover.desc
-                });
-
-                updateApprovalTable();
-                approverDropdown.val(null).trigger('change');
-            });
-
-            // mengatur tombol disable
             function updateApprovalTable() {
-                const tbody = $('#approvalTable tbody');
-                tbody.empty();
-
+                approver.tableBody.empty();
                 if (approvalList.length > 0) {
-                    $('#approvalTable').show();
-                    approvalList.forEach((item, index) => {
-                        tbody.append(`
-                            <tr>
-                                <td>${item.ApproverName}</td>
-                                <td>${item.ApproverEmail}</td>
-                                <td><button type="button" class="btn btn-danger btn-sm" onclick="removeApproval(${index})">Remove</button></td>
-                            </tr>
-                        `);
-                    });
-
-                    // Jika sudah ada approver, nonaktifkan dropdown dan tombol
-                    addApproverBtn.prop('disabled', true);
-                    approverDropdown.prop('disabled', true);
-
+                    approver.table.show();
+                    const item = approvalList[0];
+                    approver.tableBody.append(`<tr><td>${item.ApproverName}</td><td>${item.ApproverEmail}</td><td><button type="button" class="btn btn-danger btn-sm" onclick="removeApproval(0)">Remove</button></td></tr>`);
+                    approver.dropdown.prop('disabled', true);
+                    approver.addButton.prop('disabled', true);
                 } else {
-                    $('#approvalTable').hide();
-
-                    // Jika approver kosong, aktifkan kembali dropdown dan tombol
-                    addApproverBtn.prop('disabled', false);
-                    approverDropdown.prop('disabled', false);
+                    approver.table.hide();
+                    approver.dropdown.prop('disabled', false).val(null).trigger('change');
+                    approver.addButton.prop('disabled', false);
                 }
             }
 
-            // Fungsi untuk menghapus approver
             window.removeApproval = function(index) {
                 approvalList.splice(index, 1);
                 updateApprovalTable();
-            }
+            };
 
-             // Event handler untuk menghapus border merah saat input diisi
-            $('#sourcelistForm [required]').on('input change', function () {
+
+            setupFileInput(assessmentFileInput);
+            setupFileInput(endorsementFileInput);
+
+            $('#supplierStatus, #sourceListStatus').select2({
+                theme: 'bootstrap-5', width: '100%', placeholder: "-- select --"
+            });
+
+            approver.dropdown.select2({
+                theme: 'bootstrap-5', placeholder: '-- Search Approver --', allowClear: true, minimumInputLength: 3,
+                ajax: {
+                    url: '@Url.Action("SearchApprovers", "SourceList")', dataType: 'json', delay: 250,
+                    data: (params) => ({ term: params.term }),
+                    processResults: (data) => ({ results: data })
+                },
+                templateResult: (data) => {
+                    if (!data.id) return data.text;
+                    return $(`<div><strong>${data.text}</strong><br><small>${data.email || ''}</small></div>`);
+                },
+                templateSelection: (data) => data.text
+            });
+
+            supplierStatusSelect.on('change', toggleConditionalInputs);
+            toggleConditionalInputs();
+
+            approver.addButton.on('click', function() {
+                if (approvalList.length > 0) return;
+                const selected = approver.dropdown.select2('data')[0];
+                if (!selected || !selected.id) {
+                    Swal.fire('Oops...', 'Please select an approver first!', 'warning');
+                    return;
+                }
+                approvalList.push({ ApproverName: selected.text, ApproverEmail: selected.email });
+                updateApprovalTable();
+            });
+
+            form.find('[required]').on('input change', function() {
                 if ($(this).val() && $(this).val().trim() !== "") {
                     $(this).removeClass("input-error");
-                     if ($(this).is('select')) {
+                    if ($(this).is('select')) {
                         $(this).next('.select2-container').find('.select2-selection').removeClass('input-error');
                     }
                 }
@@ -406,53 +315,40 @@
 
             //  button submit
             $('#btnSubmit').on('click', function() {
-                // Hapus semua error-border sebelum validasi ulang
-                $('#sourcelistForm .input-error').removeClass('input-error');
-
+                form.find('.input-error').removeClass('input-error');
+                let emptyFields = [];
                 const fieldsToValidate = [
-                    { id: 'bauNo', label: 'BAU No. / Part Number' },
-                    { id: 'partDesc', label: 'Part Description' },
-                    { id: 'supplierName', label: 'Supplier Name' },
-                    { id: 'vendorCode', label: 'Vendor Code' },
-                    { id: 'supplierStatus', label: 'Supplier status' },
-                    { id: 'sourceListStatus', label: 'Source list status' },
-                    { id: 'cmsFinalCrb', label: 'CMS# of Final CRB' },
-                    { id: 'reasonSubmission', label: 'Reason of Submission' }
+                    { id: '#bauNo', label: 'BAU No. / Part Number' }, { id: '#partDesc', label: 'Part Description' },
+                    { id: '#supplierName', label: 'Supplier Name' }, { id: '#vendorCode', label: 'Vendor Code' },
+                    { id: '#supplierStatus', label: 'Supplier status' }, { id: '#sourceListStatus', label: 'Source list status' },
+                    { id: '#cmsFinalCrb', label: 'CMS# of Final CRB' }, { id: '#reasonSubmission', label: 'Reason of Submission' }
                 ];
 
-                // ## TAMBAHKAN INPUT BARU KE VALIDASI JIKA DIPERLUKAN ##
-                if (supplierStatusSelect.val() === 'Transfer') {
-                    fieldsToValidate.push({ id: 'supplierEndorsementList', label: 'Supplier Endorsement List' });
-                }
-
-                let emptyFields = [];
                 fieldsToValidate.forEach(field => {
-                    const el = $('#' + field.id);
+                    const el = $(field.id);
                     if (!el.val() || el.val().trim() === '') {
                         emptyFields.push(field.label);
                         el.addClass('input-error');
-                        if (el.is('select')) {
-                           el.next('.select2-container').find('.select2-selection').addClass('input-error');
-                        }
+                        if (el.is('select')) { el.next('.select2-container').find('.select2-selection').addClass('input-error'); }
                     }
                 });
 
-                // Validasi approver
+                if (supplierStatusSelect.val() === 'New' && assessmentFileInput.input.get(0).files.length === 0) {
+                    emptyFields.push('Supplier Assesment Form');
+                    assessmentFileInput.display.addClass('input-error');
+                }
+                if (supplierStatusSelect.val() === 'Transfer' && endorsementFileInput.input.get(0).files.length === 0) {
+                    emptyFields.push('Supplier Endorsement List');
+                    endorsementFileInput.display.addClass('input-error');
+                }
                 if (approvalList.length === 0) {
                     emptyFields.push('Approver');
-                    $('#approverDropdown').next('.select2-container').find('.select2-selection').addClass('input-error');
-                }
-
-                //validasi assessmentform
-                if (supplierStatusSelect.val() === 'New' && assessmentFormInput.get(0).files.length === 0) {
-                    emptyFields.push('Supplier Assesment Form');
-                    assessmentFileDisplay.addClass('input-error');
+                    approver.dropdown.next('.select2-container').find('.select2-selection').addClass('input-error');
                 }
 
                 if (emptyFields.length > 0) {
                     Swal.fire({
-                        icon: 'warning',
-                        title: 'Data Tidak Lengkap',
+                        icon: 'warning', title: 'Data Tidak Lengkap',
                         html: 'Data berikut wajib diisi:<br><ul style="text-align:left; list-style-position: inside;">' + emptyFields.map(f => `<li>${f}</li>`).join('') + '</ul>'
                     });
                     return;
@@ -460,59 +356,35 @@
 
                 // Jika validasi lolos, lanjutkan konfirmasi
                 Swal.fire({
-                    title: 'Konfirmasi',
-                    text: "Apakah Anda yakin semua data sudah benar?",
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, Submit!'
+                    title: 'Konfirmasi', text: "Apakah Anda yakin semua data sudah benar?", icon: 'question',
+                    showCancelButton: true, confirmButtonText: 'Yes, Submit!'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Aktifkan semua field disabled agar nilainya terkirim
-                        $('#requestor, #supplierEndorsementList').prop('disabled', false);
-
-                        var formData = new FormData($('#sourcelistForm')[0]);
-
-                    // Nonaktifkan kembali
+                        $('#requestor').prop('disabled', false);
+                        var formData = new FormData(form[0]);
                         $('#requestor').prop('disabled', true);
-                        toggleConditionalInputs(); // Kembalikan ke state semula
+                        toggleConditionalInputs();
 
                         if (approvalList.length > 0) {
-                            formData.append('ApproverId', approvalList[0].ApproverId);
                             formData.append('ApproverName', approvalList[0].ApproverName);
                             formData.append('ApproverEmail', approvalList[0].ApproverEmail);
                         }
 
-                        Swal.fire({
-                            title: 'Submitting...',
-                            text: 'Mohon tunggu selagi kami memproses permintaan Anda.',
-                            allowOutsideClick: false,
-                            didOpen: () => { Swal.showLoading(); }
-                        });
+                        Swal.fire({ title: 'Submitting...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
                         $.ajax({
-                            url: '@Url.Action("Create", "SourceList")',
-                            type: 'POST',
-                            data: formData,
-                            processData: false,
-                            contentType: false,
-                            success: function (response) {
+                            url: '@Url.Action("Create", "SourceList")', type: 'POST', data: formData,
+                            processData: false, contentType: false,
+                            success: function(response) {
                                 if (response.success) {
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: 'Berhasil!',
-                                        text: response.message
-                                    }).then(() => {
-                                        window.location.href = '@Url.Action("IndexMySourceList", "SourceList")';
-                                    });
+                                    Swal.fire({ icon: 'success', title: 'Berhasil!', text: response.message })
+                                    .then(() => { window.location.href = '@Url.Action("IndexMySourceList", "SourceList")'; });
                                 } else {
                                     Swal.fire('Error', response.message, 'error');
                                 }
                             },
-                            error: function (jqXHR) {
-                                var errorMsg = "Terjadi kesalahan yang tidak diketahui.";
-                                if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
-                                    errorMsg = jqXHR.responseJSON.message;
-                                }
+                            error: function(jqXHR) {
+                                const errorMsg = jqXHR.responseJSON?.message || "Terjadi kesalahan yang tidak diketahui.";
                                 Swal.fire('Permintaan Gagal', errorMsg, 'error');
                             }
                         });

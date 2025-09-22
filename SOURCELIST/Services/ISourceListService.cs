@@ -14,17 +14,22 @@ namespace sourcelist.Services
 
     public interface ISourceListService
     {
-        Task<string> CreateNewSourceListAsync(SourceListCreateViewModel model, string attachmentFileName);
+
+        Task<string> CreateNewSourceListAsync(
+            SourceListCreateViewModel model,
+            string assessmentFileName,
+            string endorsementFileName);
 
         Task UpdateAttachmentPathAsync(string sourceListId, string attachmentPath);
 
+        Task UpdateEndorsementPathAsync(string sourceListId, string endorsementPath);
 
         Task<PagedResult<SourceListDTO>> GetSourceListsByEmailPagedAsync(
             string email,
-    int pageNumber,
-    int pageSize,
-    string sortColumn,
-    string sortDirection,
-    string searchTerm);
+            int pageNumber,
+            int pageSize,
+            string sortColumn,
+            string sortDirection,
+            string searchTerm);
     }
 }

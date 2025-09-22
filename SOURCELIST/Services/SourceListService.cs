@@ -2,31 +2,28 @@
 using Microsoft.Extensions.Configuration;
 using sourcelist.DTOs;
 using sourcelist.Models.ViewModels;
-using System; 
-using System.Collections.Generic; 
+using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
-using Tavis.UriTemplates;
+
 
 namespace sourcelist.Services
 {
-
     public class SourceListService : ISourceListService
     {
         private readonly IConfiguration _configuration;
-
 
         public SourceListService(IConfiguration configuration)
         {
             _configuration = configuration;
         }
 
-        public async Task<string> CreateNewSourceListAsync(SourceListCreateViewModel model, string attachmentFileName)
+     
+        public async Task<string> CreateNewSourceListAsync(SourceListCreateViewModel model, string attachmentFileName, string endorsementFileName)
         {
-
             var connectionString = _configuration.GetConnectionString("DefaultConnection");
             string newSourceListId = string.Empty;
-
 
             using (var connection = new SqlConnection(connectionString))
             {
@@ -48,25 +45,8 @@ namespace sourcelist.Services
                     command.Parameters.AddWithValue("@ApproverName", model.ApproverName);
                     command.Parameters.AddWithValue("@ApproverEmail", model.ApproverEmail);
 
-                    if (!string.IsNullOrEmpty(model.SupplierEndorsementList))
-                    {
-                       
-                        command.Parameters.AddWithValue("@EndorsementList", model.SupplierEndorsementList);
-                    }
-                    else
-                    {
-                        command.Parameters.AddWithValue("@EndorsementList", DBNull.Value);
-                    }
-
-
-                    if (string.IsNullOrEmpty(attachmentFileName))
-                    {
-                        command.Parameters.AddWithValue("@AttachmentFileName", DBNull.Value);
-                    }
-                    else
-                    {
-                        command.Parameters.AddWithValue("@AttachmentFileName", attachmentFileName);
-                    }
+                    command.Parameters.AddWithValue("@AttachmentFileName", string.IsNullOrEmpty(attachmentFileName) ? DBNull.Value : attachmentFileName);
+                    command.Parameters.AddWithValue("@AttachedEndorsement", string.IsNullOrEmpty(endorsementFileName) ? DBNull.Value : endorsementFileName);
 
                     await connection.OpenAsync();
 
@@ -78,19 +58,14 @@ namespace sourcelist.Services
                     }
                 }
             }
-
-
-
             return newSourceListId;
-
-
         }
+
         public async Task UpdateAttachmentPathAsync(string sourceListId, string attachmentPath)
         {
             var connectionString = _configuration.GetConnectionString("DefaultConnection");
             using (var connection = new SqlConnection(connectionString))
             {
-                
                 using (var command = new SqlCommand("SOURCELIST_UPDATE_ATTACHMENT_PATH", connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
@@ -104,6 +79,23 @@ namespace sourcelist.Services
         }
 
 
+        public async Task UpdateEndorsementPathAsync(string sourceListId, string endorsementPath)
+        {
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            using (var connection = new SqlConnection(connectionString))
+            {
+                using (var command = new SqlCommand("SOURCELIST_UPDATE_ENDORSEMENT_PATH", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@SourceListNumber", sourceListId);
+
+                    command.Parameters.AddWithValue("@AttachedEndorsement", string.IsNullOrEmpty(endorsementPath) ? DBNull.Value : endorsementPath);
+
+                    await connection.OpenAsync();
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+        }
 
         public async Task<PagedResult<SourceListDTO>> GetSourceListsByEmailPagedAsync(string email, int pageNumber, int pageSize, string sortColumn, string sortDirection, string searchTerm)
         {
@@ -119,11 +111,8 @@ namespace sourcelist.Services
                     command.Parameters.AddWithValue("@EmailLogin", email);
                     command.Parameters.AddWithValue("@PageNumber", pageNumber);
                     command.Parameters.AddWithValue("@PageSize", pageSize);
-
-                   
                     command.Parameters.AddWithValue("@SortColumn", sortColumn);
                     command.Parameters.AddWithValue("@SortDirection", sortDirection);
-
                     command.Parameters.AddWithValue("@SearchTerm", string.IsNullOrEmpty(searchTerm) ? DBNull.Value : searchTerm);
 
                     var totalRowsParam = new SqlParameter
@@ -134,12 +123,11 @@ namespace sourcelist.Services
                     };
                     command.Parameters.Add(totalRowsParam);
 
+              
                     await connection.OpenAsync();
 
                     using (var reader = await command.ExecuteReaderAsync())
                     {
-
-
                         while (await reader.ReadAsync())
                         {
                             dataList.Add(new SourceListDTO
@@ -155,10 +143,8 @@ namespace sourcelist.Services
                                 SourceListStatus = reader["SourceListStatus"].ToString(),
                                 ApproverStatus = reader["ApproverStatus"]?.ToString()
                             });
-
                         }
                     }
-
 
                     if (totalRowsParam.Value != DBNull.Value)
                     {

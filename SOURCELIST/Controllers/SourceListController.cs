@@ -41,77 +41,103 @@ namespace sourcelist.Controllers
                 ModelState.AddModelError("AttachmentFile", "Supplier Assesment Form is required for new suppliers.");
             }
 
-            
+           
+            if (model.SupplierStatus == "Transfer" && model.AttachedEndorsementFile == null)
+            {
+                ModelState.AddModelError("EndorsementFile", "Supplier Endorsement List is required for transfer suppliers.");
+            }
+
             model.RequestorEmail = UserInfo.Email;
 
-
-            //if (ModelState.IsValid)
             
-                try // untuk error handling
+            if (!ModelState.IsValid)
+            {
+                // Mengembalikan error jika ada
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return BadRequest(new { success = false, message = "Data tidak valid: " + string.Join(", ", errors) });
+            }
+
+            try
+            {
+                string assessmentTempFileName = null;
+                string endorsementTempFileName = null;
+                string tempFolder = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", "temp");
+
+           
+                if (!Directory.Exists(tempFolder))
                 {
-                    string tempFileName = null; 
-
-                    // Simpan file ke folder 
-                    if (model.AssessmentAttachmentFile != null)
-                    {
-                        
-                        string tempFolder = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", "temp");
-                        if (!Directory.Exists(tempFolder))
-                        {
-                            Directory.CreateDirectory(tempFolder);
-                        }
-
-                        tempFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(model.AssessmentAttachmentFile.FileName);
-                        string tempFilePath = Path.Combine(tempFolder, tempFileName);
-
-                     
-                        using (var fileStream = new FileStream(tempFilePath, FileMode.Create))
-                        {
-                            await model.AssessmentAttachmentFile.CopyToAsync(fileStream);
-                        }
-                    }
-
-                  
-                    string newSourceListId = await _sourceListService.CreateNewSourceListAsync(model, tempFileName);
-
-                  
-                    if (tempFileName != null)
-                    {
-                        string tempFilePath = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", "temp", tempFileName);
-
-                        
-                        if (System.IO.File.Exists(tempFilePath))
-                        {
-                            // path folder 
-                            string finalFolder = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", newSourceListId);
-                            if (!Directory.Exists(finalFolder))
-                            {
-                                Directory.CreateDirectory(finalFolder);
-                            }
-
-                            
-                            string finalFileName = Path.GetFileName(model.AssessmentAttachmentFile.FileName);
-                            string finalFilePath = Path.Combine(finalFolder, finalFileName);
-
-                         
-                            System.IO.File.Move(tempFilePath, finalFilePath);
-
-                         
-                            string finalRelativePath = Path.Combine("attachments" , newSourceListId, finalFileName).Replace('\\', '/');
-
-                        
-                            await _sourceListService.UpdateAttachmentPathAsync(newSourceListId, finalRelativePath);
-                        }
-                    }
-                    // Mengembalikan respons JSON untuk AJAX
-                    return Ok(new { success = true, message = "Data berhasil disimpan!", newId = newSourceListId });
+                    Directory.CreateDirectory(tempFolder);
                 }
-                catch (Exception ex)
+
+                // Simpan file Assessment ke folder temp
+                if (model.AssessmentAttachmentFile != null)
                 {
-                    return StatusCode(500, new { success = false, message = "Terjadi kesalahan server: " + ex.Message });
+                    assessmentTempFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(model.AssessmentAttachmentFile.FileName);
+                    string tempFilePath = Path.Combine(tempFolder, assessmentTempFileName);
+                    using (var fileStream = new FileStream(tempFilePath, FileMode.Create))
+                    {
+                        await model.AssessmentAttachmentFile.CopyToAsync(fileStream);
+                    }
                 }
-            
-            return BadRequest(new { success = false, message = "Data yang dikirim tidak valid." });
+
+                // Simpan file Endorsement ke folder 
+                if (model.AttachedEndorsementFile != null)
+                {
+                    endorsementTempFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(model.AttachedEndorsementFile.FileName);
+                    string tempFilePath = Path.Combine(tempFolder, endorsementTempFileName);
+                    using (var fileStream = new FileStream(tempFilePath, FileMode.Create))
+                    {
+                        await model.AttachedEndorsementFile.CopyToAsync(fileStream);
+                    }
+                }
+
+                string newSourceListId = await _sourceListService.CreateNewSourceListAsync(model, assessmentTempFileName, endorsementTempFileName);
+
+             
+                string finalFolder = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", newSourceListId);
+                if (!Directory.Exists(finalFolder))
+                {
+                    Directory.CreateDirectory(finalFolder);
+                }
+
+         
+                if (assessmentTempFileName != null)
+                {
+                  
+                    string tempFilePath = Path.Combine(tempFolder, assessmentTempFileName);
+                    if (System.IO.File.Exists(tempFilePath))
+                    {
+                        string finalFileName = Path.GetFileName(model.AssessmentAttachmentFile.FileName); // Nama file 
+                        string finalFilePath = Path.Combine(finalFolder, finalFileName);
+                        System.IO.File.Move(tempFilePath, finalFilePath);
+
+                        string finalRelativePath = Path.Combine("attachments", newSourceListId, finalFileName).Replace('\\', '/');
+                        await _sourceListService.UpdateAttachmentPathAsync(newSourceListId, finalRelativePath);
+                    }
+                }
+
+             
+                if (endorsementTempFileName != null)
+                {
+                    string tempFilePath = Path.Combine(tempFolder, endorsementTempFileName);
+                    if (System.IO.File.Exists(tempFilePath))
+                    {
+                        string finalFileName = Path.GetFileName(model.AttachedEndorsementFile.FileName);
+                        string finalFilePath = Path.Combine(finalFolder, finalFileName);
+                        System.IO.File.Move(tempFilePath, finalFilePath);
+
+                        string finalRelativePath = Path.Combine("attachments", newSourceListId, finalFileName).Replace('\\', '/');
+                        await _sourceListService.UpdateEndorsementPathAsync(newSourceListId, finalRelativePath);
+                    }
+                }
+
+                return Ok(new { success = true, message = "Data berhasil disimpan!", newId = newSourceListId });
+            }
+            catch (Exception ex)
+            {
+             
+                return StatusCode(500, new { success = false, message = "Terjadi kesalahan server: " + ex.Message });
+            }
         }
 
         [HttpGet]

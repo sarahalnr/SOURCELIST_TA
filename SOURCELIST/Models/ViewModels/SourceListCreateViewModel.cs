@@ -13,9 +13,9 @@
         public string CMSFinalCRB { get; set; }
         public string ReasonSubmission { get; set; }
 
-        public string RequestorEmail { get; set; } 
+        public string? RequestorEmail { get; set; }
 
-        public string SupplierEndorsementList { get; set; } 
+        public IFormFile? AttachedEndorsementFile { get; set; } 
         public string ApproverName { get; set; }
         public string ApproverEmail { get; set; }
     }
