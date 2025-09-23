@@ -31,5 +31,13 @@ namespace sourcelist.Services
             string sortColumn,
             string sortDirection,
             string searchTerm);
+
+        Task<PagedResult<SourceListDTO>> GetSourceListsForApprovalPagedAsync(
+            string email,
+            int pageNumber,
+            int pageSize, 
+            string sortColumn,
+            string sortDirection, 
+            string searchTerm);
     }
 }

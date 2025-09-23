@@ -178,6 +178,43 @@ namespace sourcelist.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> IndexForApprove(
+           int page = 1,
+           int pageSize = 10,
+           string sortColumn = "SubmitDate",
+           string sortDirection = "DESC",
+           string searchTerm = null,
+           bool isAjax = false)
+        {
+
+            var UserInfo = HttpContext.Session.GetObjectFromJson<sourcelist.Models.UserInfo>("UserInfo");
+            if (UserInfo == null)
+            {
+                TempData["SweetAlertMessage"] = "Session not found. You are redirecting to Home.";
+                TempData["SweetAlertType"] = "error";
+                TempData["SweetAlertRedirect"] = Url.Action("Index", "Home");
+                return RedirectToAction("Index", "Home");
+            }
+
+            string email = UserInfo.Email;
+            var result = await _sourceListService.GetSourceListsForApprovalPagedAsync(email, page, pageSize, sortColumn, sortDirection, searchTerm);
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalRows = result.TotalRows;
+            ViewBag.SortColumn = sortColumn;
+            ViewBag.SortDirection = sortDirection;
+            ViewBag.SearchTerm = searchTerm;
+
+            if (isAjax)
+            {
+
+                return PartialView("_MySourceListTable", result);
+            }
+
+            return View(result);
+        }
+
+        [HttpGet]
         public JsonResult SearchApprovers(string term)
         {
             var users = _ldapService.GetAllUsers(term);

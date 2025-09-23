@@ -1,0 +1,68 @@
+﻿@model sourcelist.Services.PagedResult<sourcelist.DTOs.SourceListDTO>
+
+@{
+    ViewData["Title"] = "Approve";
+    string searchTerm = ViewBag.SearchTerm ?? "";
+}
+
+@section Head {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link href="~/Style/tablebadgecss.css" rel="stylesheet" />
+}
+
+<div class="container-fluid p-4" style="font-family:Calibri;">
+    <div class="form-header">
+        <i class="bi bi-clipboard-check"></i> For Approve Sourcelist
+    </div>
+
+    <form id="searchForm" class="mb-3" autocomplete="off">
+        <div class="input-group">
+            <input type="text" id="searchBox" class="form-control" placeholder="Search... " name="searchTerm" value="@searchTerm" autocomplete="off">
+        </div>
+    </form>
+
+    <div id="sourceListTableContainer">
+        @await Html.PartialAsync("_MySourceListTable", Model)
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        let typingTimer;
+        const doneTypingInterval = 500;
+
+
+        function loadSourceList(page = 1) {
+            let searchTerm = $('#searchBox').val();
+            $('#sourceListTableContainer').html('<p class="text-center">Loading...</p>');
+
+            $.get('@Url.Action("IndexForApprove")', {
+                page: page,
+                searchTerm: searchTerm,
+                isAjax: true
+            }, function (data) {
+                $('#sourceListTableContainer').html(data);
+            });
+        }
+
+        $('#searchBox').on('keyup', function () {
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(function () {
+                loadSourceList(1);
+            }, doneTypingInterval);
+        }).on('keydown', function () {
+            clearTimeout(typingTimer);
+        });
+
+
+        $(document).on('click', '#sourceListTableContainer .pagination .page-link', function (e) {
+            e.preventDefault();
+            let page = $(this).data('page');
+            if (page && !$(this).parent().hasClass('disabled') && !$(this).parent().hasClass('active')) {
+                loadSourceList(page);
+            }
+        });
+    </script>
+}
