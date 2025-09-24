@@ -1,0 +1,248 @@
+﻿@model sourcelist.Models.ViewModels.SourceListDetailViewModel
+
+@{
+    ViewData["Title"] = "SourceList Detail";
+
+    // --- Logika untuk status, dipindahkan ke sini agar rapi ---
+    var status = Model.SourceListStatus?.Trim().ToUpper() ?? "PENDING";
+    var statusConfig = status switch
+    {
+        "PENDING" => (Class: "status-btn-PENDING", Icon: "bi-hourglass-split"),
+        "APPROVED" => (Class: "status-btn-APPROVED", Icon: "bi-check-circle"),
+        "REJECTED" => (Class: "status-btn-REJECTED", Icon: "bi-x-circle"),
+        "CANCELED" => (Class: "status-btn-CANCELED", Icon: "bi-slash-circle"),
+        _ => (Class: "status-btn-DEFAULT", Icon: "bi-question-circle"),
+    };
+}
+
+@section Head {
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <style>
+        .section-header {
+            background-color: #a3d65c;
+            color: #fff;
+            padding: 10px 15px;
+            font-weight: bold;
+            border-radius: 6px 6px 0 0;
+            margin-bottom: 10px;
+        }
+
+        /* .data-block {
+            border: 1px solid #dee2e6;
+            border-top: 0;
+            padding: 15px;
+            background-color: #fff;
+        } */
+
+        .data-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+            .data-row label {
+                width: 220px;
+                font-weight: 600;
+                color: #495057;
+                padding: 5px 0;
+            }
+
+            .data-row .value {
+                flex: 1;
+                min-width: 200px;
+                padding: 5px 10px;
+                background-color: #f8f9fa;
+                border: 1px solid #e9ecef;
+                border-radius: 4px;
+                color: #212529;
+            }
+
+        .status-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9em;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            border: none;
+            cursor: default;
+        }
+
+        .status-btn-PENDING {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-btn-APPROVED {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-btn-REJECTED {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-btn-CANCELED {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .status-btn-DEFAULT {
+            background: #d6d8db;
+            color: #383d41;
+        }
+
+        .fixed-bottom-right {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 1030;
+            display: flex;
+            gap: 0.5rem;
+        }
+    </style>
+}
+
+<div class="container-fluid p-4" style="font-family:Calibri;">
+
+    @* <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="m-0">SourceList Detail: <strong>@Model.SourceListNumber</strong></h4>
+        <span class="@statusConfig.Class status-btn">
+            <i class="bi @statusConfig.Icon"></i> @Model.SourceListStatus
+        </span>
+    </div> *@
+
+        <div class="section-header d-flex justify-content-between align-items-center">
+            <span>Submission Information</span>
+            <span style="font-size:0.9em;">
+                Submit Date: @(Model.SubmittedDate?.ToString("dd-MMM-yyyy") ?? "-")
+            </span>
+        </div>
+        <div class="data-block">
+            <div class="data-row"><label>Requestor</label><div class="value">@Model.Requestor</div></div>
+            <div class="data-row"><label>BAU No. / Part Number</label><div class="value">@Model.BAUNumber</div></div>
+            <div class="data-row"><label>Part Description</label><div class="value">@Model.PartDescription</div></div>
+            <div class="data-row"><label>Supplier Name</label><div class="value">@Model.SupplierName</div></div>
+            <div class="data-row"><label>Vendor Code</label><div class="value">@Model.VendorCode</div></div>
+            <div class="data-row"><label>Supplier Status</label><div class="value">@Model.SupplierStatus</div></div>
+            <div class="data-row"><label>Source List Status</label><div class="value">@Model.SourceListStatus</div></div>
+            <div class="data-row"><label>CMS# of Final CRB</label><div class="value">@Model.CMSFinalCRB</div></div>
+            <div class="data-row"><label>Reason of Submission</label><div class="value">@Model.ReasonSubmission</div></div>
+        </div>
+
+    <div class="section-header mt-4">
+        <span>Attachments</span>
+    </div>
+    <div class="data-block attachments">
+        @if (!string.IsNullOrEmpty(Model.AttachmentFileName))
+        {
+            <a href="@Url.Content($"~/attachments/{Model.SourceListNumber}/{Model.AttachmentFileName}")" target="_blank"><i class="bi bi-file-earmark-text"></i> Supplier Assessment Form</a>
+        }
+        @if (!string.IsNullOrEmpty(Model.AttachedEndorsement))
+        {
+            <a href="@Url.Content($"~/attachments/{Model.SourceListNumber}/{Model.AttachedEndorsement}")" target="_blank"><i class="bi bi-file-earmark-text"></i> Supplier Endorsement List</a>
+        }
+        @if (string.IsNullOrEmpty(Model.AttachmentFileName) && string.IsNullOrEmpty(Model.AttachedEndorsement))
+        {
+            <span class="text-muted">No attachments available.</span>
+        }
+    </div>
+
+            <div class="section-header mt-4">
+                <span>Approval Information</span>
+            </div>
+            <div class="data-block">
+                <div class="data-row"><label>Approver Name</label><div class="value">@Model.ApproverName</div></div>
+                <div class="data-row"><label>Approver Email</label><div class="value">@Model.ApproverEmail</div></div>
+            </div>
+
+        
+
+    <div class="fixed-bottom-right">
+        <button type="button" class="btn btn-primary" id="btnCopyLink"><i class="bi bi-clipboard"></i> Copy Link</button>
+
+        @if (ViewBag.ShowApprovalButtons as bool? == true)
+        {
+            <button type="button" class="btn btn-success" id="btnApprove"><i class="bi bi-check-circle"></i> APPROVE</button>
+            <button type="button" class="btn btn-danger" id="btnReject"><i class="bi bi-x-circle"></i> REJECT</button>
+        }
+        
+        <a href="@ViewData["ReturnUrl"]" class="btn btn-secondary"><i class="bi bi-arrow-left-circle"></i> Back to List</a>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(function() { 
+
+             $('#btnApprove').on('click', function () {
+                Swal.fire({
+                    title: 'Approve SourceList?',
+                    input: 'textarea',
+                    inputLabel: 'Remark (optional)',
+                    inputPlaceholder: 'Type your remark here...',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Approve',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#28a745',
+                    cancelButtonColor: '#6c757d',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+
+                        //untuk proses Approve
+                        console.log("Approved! Reason: " + result.value + " | SL No: @Model.SourceListNumber");
+                        Swal.fire('Approved!', 'The SourceList has been Approve.', 'success')
+                            .then(() => window.location.href = '@Url.Action("IndexForApprove", "SourceList")');
+                    }
+                });
+            });
+
+
+            $('#btnReject').on('click', function() {
+                Swal.fire({
+                    title: 'Reject SourceList?',
+                    text: "Please provide a reason for rejection:",
+                    icon: 'warning',
+                    input: 'textarea',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Reject!',
+                    confirmButtonColor: '#d33',
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return 'You need to write a reason!'
+                        }
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        //untuk proses Reject
+                        console.log("Rejected! Reason: " + result.value + " | SL No: @Model.SourceListNumber");
+                        Swal.fire('Rejected!', 'The SourceList has been rejected.', 'success')
+                            .then(() => window.location.href = '@Url.Action("IndexForApprove", "SourceList")');
+                    }
+                });
+            });
+
+            $('#btnCopyLink').on('click', function() {
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Link Copied!',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                }, (err) => {
+                    console.error('Could not copy text: ', err);
+                    Swal.fire('Oops!', 'Failed to copy the link.', 'error');
+                });
+            });
+
+        });
+    </script>
+}

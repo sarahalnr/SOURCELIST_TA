@@ -205,6 +205,8 @@ namespace sourcelist.Controllers
             ViewBag.SortDirection = sortDirection;
             ViewBag.SearchTerm = searchTerm;
 
+            ViewData["Source"] = "Approve";
+
             if (isAjax)
             {
 
@@ -213,6 +215,42 @@ namespace sourcelist.Controllers
 
             return View(result);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Detail(string id, string source)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return BadRequest("Source List Number is required.");
+            }
+
+            var viewModel = await _sourceListService.GetSourceListDetailAsync(id);
+
+            if (viewModel == null)
+            {
+                return NotFound($"Source List with number {id} not found.");
+            }
+
+            bool isFromApprovePage = "Approve".Equals(source, StringComparison.OrdinalIgnoreCase);
+
+           
+            bool isPending = "PENDING".Equals(viewModel.ApproverStatus, StringComparison.OrdinalIgnoreCase);
+      
+
+            ViewBag.ShowApprovalButtons = isFromApprovePage && isPending;
+
+            if (isFromApprovePage)
+            {
+                ViewData["ReturnUrl"] = Url.Action("IndexForApprove", "SourceList");
+            }
+            else
+            {
+                ViewData["ReturnUrl"] = Url.Action("IndexMySourceList", "SourceList");
+            }
+
+            return View(viewModel);
+        }
+
 
         [HttpGet]
         public JsonResult SearchApprovers(string term)

@@ -39,5 +39,7 @@ namespace sourcelist.Services
             string sortColumn,
             string sortDirection, 
             string searchTerm);
+
+        Task<SourceListDetailViewModel> GetSourceListDetailAsync(string sourceListNumber);
     }
 }

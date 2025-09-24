@@ -201,5 +201,48 @@ namespace sourcelist.Services
             }
             return new PagedResult<SourceListDTO> { Data = dataList, TotalRows = totalRows, TotalPages = (int)Math.Ceiling((double)totalRows / pageSize) };
         }
+
+        public async Task<SourceListDetailViewModel> GetSourceListDetailAsync(string sourceListNumber)
+        {
+            SourceListDetailViewModel viewModel = null;
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                using (var command = new SqlCommand("SOURCELIST_GET_DETAIL", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@SourceListNumber", sourceListNumber);
+
+                    await connection.OpenAsync();
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        if (await reader.ReadAsync()) 
+                        {
+                            viewModel = new SourceListDetailViewModel
+                            {
+                                SourceListNumber = reader["SourceListNumber"].ToString(),
+                                Requestor = reader["Requestor"].ToString(),
+                                BAUNumber = reader["BAUNumber"].ToString(),
+                                PartDescription = reader["PartDescription"].ToString(),
+                                SupplierName = reader["SupplierName"].ToString(),
+                                VendorCode = reader["VendorCode"].ToString(),
+                                SupplierStatus = reader["SupplierStatus"].ToString(),
+                                SourceListStatus = reader["SourceListStatus"].ToString(),
+                                CMSFinalCRB = reader["CMSFinalCRB"].ToString(),
+                                ReasonSubmission = reader["ReasonSubmission"].ToString(),
+                                ApproverStatus = reader["ApproverStatus"]?.ToString(),
+                                ApproverName = reader["ApproverName"].ToString(),
+                                ApproverEmail = reader["ApproverEmail"].ToString(),
+                                SubmittedDate = reader["SubmittedDate"] != DBNull.Value ? Convert.ToDateTime(reader["SubmittedDate"]) : null
+                            
+                            };
+                        }
+                    }
+                }
+            }
+            return viewModel; 
+        }
+
     }
 }

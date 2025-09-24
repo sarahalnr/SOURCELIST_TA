@@ -241,38 +241,38 @@
 		window.addEventListener('resize', handleResize);
 		handleResize();
 
-            document.getElementById('btnCreateFair').addEventListener('click', function (e) {
-            e.preventDefault(); // cegah link langsung redirect
+            // document.getElementById('btnCreateFair').addEventListener('click', function (e) {
+            // e.preventDefault(); cegah link langsung redirect
 
-            Swal.fire({
-                title: 'Loading...',
-                text: 'Please wait while generating FAIR Request Form.',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
+            // Swal.fire({
+            //     title: 'Loading...',
+            //     text: 'Please wait while generating FAIR Request Form.',
+            //     allowOutsideClick: false,
+            //     didOpen: () => {
+            //         Swal.showLoading();
+            //     }
+            // });
 
             // script untuk create mqff
 
-             document.getElementById('btnCreateMqff').addEventListener('click', function (e) {
-            e.preventDefault(); // cegah link langsung redirect
+            //  document.getElementById('btnCreateMqff').addEventListener('click', function (e) {
+            // e.preventDefault(); cegah link langsung redirect
 
-            Swal.fire({
-                title: 'Loading...',
-                text: 'Please wait while generating FAIR Request Form.',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
+            // Swal.fire({
+            //     title: 'Loading...',
+            //     text: 'Please wait while generating FAIR Request Form.',
+            //     allowOutsideClick: false,
+            //     didOpen: () => {
+            //         Swal.showLoading();
+            //     }
+            // });
 
 
             // Redirect setelah swal tampil
-            setTimeout(function () {
-                window.location.href = '@Url.Action("Create", "Fair")';
-            }, 500); // delay agar swal sempat tampil
-        });
+        //     setTimeout(function () {
+        //         window.location.href = '@Url.Action("Create", "Fair")';
+        //     }, 500); delay agar swal sempat tampil
+        // });
 	</script>
     @* SweetAlert notification *@
     @{
