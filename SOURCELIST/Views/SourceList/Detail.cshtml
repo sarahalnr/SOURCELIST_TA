@@ -17,6 +17,7 @@
 @section Head {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
 
     <style>
         .section-header {
@@ -104,6 +105,11 @@
             display: flex;
             gap: 0.5rem;
         }
+
+        .select2.period {
+            max-width: 250px;
+            width: 100%;
+        }
     </style>
 }
 
@@ -171,7 +177,21 @@
                 <div class="data-row"><label>Approver Name</label><div class="value">@Model.ApproverName</div></div>
                 <div class="data-row"><label>Approver Email</label><div class="value">@Model.ApproverEmail</div></div>
             </div>
+ 
+ @if (ViewBag.ShowApprovalButtons as bool? == true)
+    {
+        <div class="data-block">
+            <div class="data-row">
+            <label for="validityPeriod">Validity period:</label>
 
+            <select id="validityPeriod" class="form-select value period select2" style="background-color:white; max-width: 250px;">
+                <option value="">-- Select --</option>
+                <option value="Temporary">Temporary</option>
+                <option value="Permanent">Permanent</option>
+            </select>
+        </div>
+    </div>
+    }
         
 
     <div class="fixed-bottom-right">
@@ -185,36 +205,51 @@
         
         <a href="@ViewData["ReturnUrl"]" class="btn btn-secondary"><i class="bi bi-arrow-left-circle"></i> Back to List</a>
     </div>
+
+
 </div>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        $(function() { 
+        $(function() {
 
-             $('#btnApprove').on('click', function () {
+                    $('#btnApprove').on('click', function () {
+            const validityPeriod = $('#validityPeriod').val();
+            if (!validityPeriod) {
+                // Jika dropdown kosong, tampilkan pesan error
                 Swal.fire({
-                    title: 'Approve SourceList?',
-                    input: 'textarea',
-                    inputLabel: 'Remark (optional)',
-                    inputPlaceholder: 'Type your remark here...',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, Approve',
-                    cancelButtonText: 'Cancel',
-                    confirmButtonColor: '#28a745',
-                    cancelButtonColor: '#6c757d',
-                }).then((result) => {
-                    if (result.isConfirmed) {
-
-                        //untuk proses Approve
-                        console.log("Approved! Reason: " + result.value + " | SL No: @Model.SourceListNumber");
-                        Swal.fire('Approved!', 'The SourceList has been Approve.', 'success')
-                            .then(() => window.location.href = '@Url.Action("IndexForApprove", "SourceList")');
-                    }
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: 'Please select a validity period!',
                 });
-            });
+                return; 
+            }
 
+            Swal.fire({
+                title: 'Are you sure?',
+                icon: 'question',
+                input: 'textarea',
+                inputLabel: 'Remark (optional)',
+                inputPlaceholder: 'Type your remark here...',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Approve!',
+                confirmButtonColor: '#28a745',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const remark = result.value;
+
+                    // 'validityPeriod' dan 'remark' ke Controller
+                    console.log("Approved! Period: " + validityPeriod + " | Remark: " + remark);
+
+                    Swal.fire('Approved!', 'The request has been approved.', 'success')
+                        .then(() => {
+                            window.location.href = '@ViewData["ReturnUrl"]';
+                        });
+                }
+            });
+        });
 
             $('#btnReject').on('click', function() {
                 Swal.fire({
