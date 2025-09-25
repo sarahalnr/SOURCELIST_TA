@@ -26,6 +26,7 @@
                 <th>Requestor</th>
                 <th>Submit Date</th>
                 <th>Approval Status</th>
+                <th>Bau Number</th>
                 <th>Part Description</th>
                 <th>Supplier</th>
                 <th>Vendor Code</th>
@@ -62,6 +63,7 @@
                         <td>
                             <span class="status-FORREVIEW @statusClass">@displayStatus</span>
                         </td>
+                        <td>@item.BAUNumber</td>
                         <td>@item.PartDescription</td>
                         <td>@item.SupplierName</td>
                         <td>@item.VendorCode</td>

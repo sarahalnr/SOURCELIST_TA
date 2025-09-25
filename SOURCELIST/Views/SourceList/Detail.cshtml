@@ -3,7 +3,6 @@
 @{
     ViewData["Title"] = "SourceList Detail";
 
-    // --- Logika untuk status, dipindahkan ke sini agar rapi ---
     var status = Model.SourceListStatus?.Trim().ToUpper() ?? "PENDING";
     var statusConfig = status switch
     {
@@ -141,12 +140,24 @@
     <div class="data-block attachments">
         @if (!string.IsNullOrEmpty(Model.AttachmentFileName))
         {
-            <a href="@Url.Content($"~/attachments/{Model.SourceListNumber}/{Model.AttachmentFileName}")" target="_blank"><i class="bi bi-file-earmark-text"></i> Supplier Assessment Form</a>
+            <div class="mb-2">
+                <a href="@Url.Action("DownloadFile", "SourceList", new { id = Model.SourceListNumber, fileName = Model.AttachmentFileName })">
+                    <i class="bi bi-download"></i> @System.IO.Path.GetFileName(Model.AttachmentFileName)
+                </a>
+                @* <small class="text-muted d-block">Supplier Assessment Form</small> *@
+            </div>
         }
+
         @if (!string.IsNullOrEmpty(Model.AttachedEndorsement))
         {
-            <a href="@Url.Content($"~/attachments/{Model.SourceListNumber}/{Model.AttachedEndorsement}")" target="_blank"><i class="bi bi-file-earmark-text"></i> Supplier Endorsement List</a>
+            <div class="mb-2">
+                <a href="@Url.Action("DownloadFile", "SourceList", new { id = Model.SourceListNumber, fileName = Model.AttachedEndorsement })">
+                    <i class="bi bi-download"></i> @System.IO.Path.GetFileName(Model.AttachedEndorsement)
+                </a>
+                @* <small class="text-muted d-block">Supplier Endorsement List</small> *@
+            </div>
         }
+
         @if (string.IsNullOrEmpty(Model.AttachmentFileName) && string.IsNullOrEmpty(Model.AttachedEndorsement))
         {
             <span class="text-muted">No attachments available.</span>

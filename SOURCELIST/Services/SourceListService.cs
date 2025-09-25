@@ -234,6 +234,8 @@ namespace sourcelist.Services
                                 ApproverStatus = reader["ApproverStatus"]?.ToString(),
                                 ApproverName = reader["ApproverName"].ToString(),
                                 ApproverEmail = reader["ApproverEmail"].ToString(),
+                                AttachmentFileName = reader["AttachmentFileName"]?.ToString(), 
+                                AttachedEndorsement = reader["AttachedEndorsement"]?.ToString(),
                                 SubmittedDate = reader["SubmittedDate"] != DBNull.Value ? Convert.ToDateTime(reader["SubmittedDate"]) : null
                             
                             };

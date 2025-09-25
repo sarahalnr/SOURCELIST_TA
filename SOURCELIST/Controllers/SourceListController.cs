@@ -37,11 +37,9 @@ namespace sourcelist.Controllers
 
             if (model.SupplierStatus == "New" && model.AssessmentAttachmentFile == null)
             {
-                // Jika status "New" tapi tidak ada file, tambahkan error 
                 ModelState.AddModelError("AttachmentFile", "Supplier Assesment Form is required for new suppliers.");
             }
 
-           
             if (model.SupplierStatus == "Transfer" && model.AttachedEndorsementFile == null)
             {
                 ModelState.AddModelError("EndorsementFile", "Supplier Endorsement List is required for transfer suppliers.");
@@ -100,23 +98,20 @@ namespace sourcelist.Controllers
                     Directory.CreateDirectory(finalFolder);
                 }
 
-         
+                // Proses file Assessment
                 if (assessmentTempFileName != null)
                 {
-                  
                     string tempFilePath = Path.Combine(tempFolder, assessmentTempFileName);
                     if (System.IO.File.Exists(tempFilePath))
                     {
-                        string finalFileName = Path.GetFileName(model.AssessmentAttachmentFile.FileName); // Nama file 
+                        string finalFileName = Path.GetFileName(model.AssessmentAttachmentFile.FileName);
                         string finalFilePath = Path.Combine(finalFolder, finalFileName);
                         System.IO.File.Move(tempFilePath, finalFilePath);
-
-                        string finalRelativePath = Path.Combine("attachments", newSourceListId, finalFileName).Replace('\\', '/');
-                        await _sourceListService.UpdateAttachmentPathAsync(newSourceListId, finalRelativePath);
+                        await _sourceListService.UpdateAttachmentPathAsync(newSourceListId, finalFileName);
                     }
                 }
 
-             
+                // Proses file Endorsement
                 if (endorsementTempFileName != null)
                 {
                     string tempFilePath = Path.Combine(tempFolder, endorsementTempFileName);
@@ -125,9 +120,7 @@ namespace sourcelist.Controllers
                         string finalFileName = Path.GetFileName(model.AttachedEndorsementFile.FileName);
                         string finalFilePath = Path.Combine(finalFolder, finalFileName);
                         System.IO.File.Move(tempFilePath, finalFilePath);
-
-                        string finalRelativePath = Path.Combine("attachments", newSourceListId, finalFileName).Replace('\\', '/');
-                        await _sourceListService.UpdateEndorsementPathAsync(newSourceListId, finalRelativePath);
+                        await _sourceListService.UpdateEndorsementPathAsync(newSourceListId, finalFileName);
                     }
                 }
 
