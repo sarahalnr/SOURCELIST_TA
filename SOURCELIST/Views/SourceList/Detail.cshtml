@@ -215,32 +215,14 @@
 
     <script>
         $(function() {
-
-            // FUNGSI UNTUK MENGATUR PERIOD
-            function toggleApprovalButtons() {
-            const validityPeriodSelected = $('#validityPeriod').val();
-
-            if (validityPeriodSelected) {
-                $('#btnApprove').prop('disabled', false);
-            } else {
-                $('#btnApprove').prop('disabled', true);
-            }
-            $('#btnReject').prop('disabled', false);
-        }
-            $('#validityPeriod').on('change', function() {
-                toggleApprovalButtons();
-            });
-
-            toggleApprovalButtons();
-
-
-            // UNTUK TOMBOL APPROVE 
+            // UNTUK TOMBOL APPROVE
             $('#btnApprove').on('click', function () {
                 const validityPeriod = $('#validityPeriod').val();
                 if (!validityPeriod) {
                     Swal.fire('Validation Error', 'Please select a validity period!', 'error');
-                    return;
+                    return; 
                 }
+
                 Swal.fire({
                     title: 'Are you sure?',
                     text: "You are about to approve this request.",
@@ -271,7 +253,7 @@
                 });
             });
 
-            // UNTUK TOMBOL REJECT 
+            // UNTUK TOMBOL REJECT
             $('#btnReject').on('click', function() {
                 Swal.fire({
                     title: 'Are you sure?',
