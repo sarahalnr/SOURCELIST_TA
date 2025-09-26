@@ -244,6 +244,66 @@ namespace sourcelist.Controllers
             return View(viewModel);
         }
 
+      
+        [HttpPost]
+        public async Task<IActionResult> Approve([FromBody] ApprovalViewModel model)
+        {
+            if (model == null || string.IsNullOrEmpty(model.SourceListNumber))
+            {
+                return BadRequest(new { success = false, message = "Invalid data." });
+            }
+            try
+            {
+                await _sourceListService.ApproveSourceListAsync(model);
+                return Ok(new { success = true, message = "SourceList has been approved." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Reject([FromBody] ApprovalViewModel model)
+        {
+            if (model == null || string.IsNullOrEmpty(model.SourceListNumber))
+            {
+                return BadRequest(new { success = false, message = "Invalid data." });
+            }
+            try
+            {
+                await _sourceListService.RejectSourceListAsync(model);
+                return Ok(new { success = true, message = "SourceList has been rejected." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult DownloadFile(string id, [FromQuery] string fileName)
+        {
+       
+            if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(fileName))
+            {
+                return BadRequest("Informasi file tidak lengkap.");
+            }
+
+            string fullPath = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", id, fileName);
+
+    
+            if (!System.IO.File.Exists(fullPath))
+            {
+                return NotFound("File tidak ditemukan di server.");
+            }
+
+  
+            byte[] fileBytes = System.IO.File.ReadAllBytes(fullPath);
+
+            return File(fileBytes, "application/octet-stream", fileName);
+        }
+
 
         [HttpGet]
         public JsonResult SearchApprovers(string term)

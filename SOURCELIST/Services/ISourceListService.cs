@@ -41,5 +41,8 @@ namespace sourcelist.Services
             string searchTerm);
 
         Task<SourceListDetailViewModel> GetSourceListDetailAsync(string sourceListNumber);
+
+        Task ApproveSourceListAsync(ApprovalViewModel model);
+        Task RejectSourceListAsync(ApprovalViewModel model);
     }
 }

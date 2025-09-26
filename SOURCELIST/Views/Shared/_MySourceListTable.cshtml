@@ -44,15 +44,16 @@
                     string statusClass = status switch
                     {
                         "NEW" => "status-NEW",
-                        "FOR REVIEW" => "status-FORREVIEW",
-                        "FOR APPROVAL" => "status-FORAPPROVAL",
+                        // "FOR REVIEW" => "status-FORREVIEW",
+                        // "FOR APPROVAL" => "status-FORAPPROVAL",
                         "APPROVED" => "status-APPROVED",
-                        "UPDATED" => "status-UPDATED",
-                        "CLOSED" => "status-CLOSED",
-                        "MEASUREMENT UPDATED" => "status-UPDATED",
-                        "COMPLETE REVIEW" => "status-COMPLETEREVIEW",
+                        // "UPDATED" => "status-UPDATED",
+                        // "CLOSED" => "status-CLOSED",
+                        // "MEASUREMENT UPDATED" => "status-UPDATED",
+                        // "COMPLETE REVIEW" => "status-COMPLETEREVIEW",
                         "COMPLETED" => "status-APPROVED",
                         "DELETED" => "status-DELETED",
+                        "REJECTED" => "status-REJECTED",
                         _ => "status-NEW"
 
                     };

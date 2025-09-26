@@ -17,7 +17,7 @@
 @section Head {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+
 
     <style>
         .section-header {
@@ -212,69 +212,97 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         $(function() {
 
-                    $('#btnApprove').on('click', function () {
-            const validityPeriod = $('#validityPeriod').val();
-            if (!validityPeriod) {
-                // Jika dropdown kosong, tampilkan pesan error
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Validation Error',
-                    text: 'Please select a validity period!',
-                });
-                return; 
+            // FUNGSI UNTUK MENGATUR PERIOD
+            function toggleApprovalButtons() {
+            const validityPeriodSelected = $('#validityPeriod').val();
+
+            if (validityPeriodSelected) {
+                $('#btnApprove').prop('disabled', false);
+            } else {
+                $('#btnApprove').prop('disabled', true);
             }
-
-            Swal.fire({
-                title: 'Are you sure?',
-                icon: 'question',
-                input: 'textarea',
-                inputLabel: 'Remark (optional)',
-                inputPlaceholder: 'Type your remark here...',
-                showCancelButton: true,
-                confirmButtonText: 'Yes, Approve!',
-                confirmButtonColor: '#28a745',
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const remark = result.value;
-
-                    // 'validityPeriod' dan 'remark' ke Controller
-                    console.log("Approved! Period: " + validityPeriod + " | Remark: " + remark);
-
-                    Swal.fire('Approved!', 'The request has been approved.', 'success')
-                        .then(() => {
-                            window.location.href = '@ViewData["ReturnUrl"]';
-                        });
-                }
+            $('#btnReject').prop('disabled', false);
+        }
+            $('#validityPeriod').on('change', function() {
+                toggleApprovalButtons();
             });
-        });
 
+            toggleApprovalButtons();
+
+
+            // UNTUK TOMBOL APPROVE 
+            $('#btnApprove').on('click', function () {
+                const validityPeriod = $('#validityPeriod').val();
+                if (!validityPeriod) {
+                    Swal.fire('Validation Error', 'Please select a validity period!', 'error');
+                    return;
+                }
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You are about to approve this request.",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Approve!',
+                    confirmButtonColor: '#28a745',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const dataToSend = {
+                            SourceListNumber: '@Model.SourceListNumber',
+                            ValidityPeriod: validityPeriod
+                        };
+                        $.ajax({
+                            url: '@Url.Action("Approve", "SourceList")',
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify(dataToSend),
+                            success: function(response) {
+                                Swal.fire('Approved!', response.message, 'success')
+                                    .then(() => window.location.href = '@ViewData["ReturnUrl"]');
+                            },
+                            error: function() {
+                                Swal.fire('Error!', 'An unknown error occurred.', 'error');
+                            }
+                        });
+                    }
+                });
+            });
+
+            // UNTUK TOMBOL REJECT 
             $('#btnReject').on('click', function() {
                 Swal.fire({
-                    title: 'Reject SourceList?',
-                    text: "Please provide a reason for rejection:",
+                    title: 'Are you sure?',
+                    text: "You are about to reject this request.",
                     icon: 'warning',
-                    input: 'textarea',
                     showCancelButton: true,
                     confirmButtonText: 'Yes, Reject!',
                     confirmButtonColor: '#d33',
-                    inputValidator: (value) => {
-                        if (!value) {
-                            return 'You need to write a reason!'
-                        }
-                    }
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        //untuk proses Reject
-                        console.log("Rejected! Reason: " + result.value + " | SL No: @Model.SourceListNumber");
-                        Swal.fire('Rejected!', 'The SourceList has been rejected.', 'success')
-                            .then(() => window.location.href = '@Url.Action("IndexForApprove", "SourceList")');
+                        const dataToSend = {
+                            SourceListNumber: '@Model.SourceListNumber'
+                        };
+                        $.ajax({
+                            url: '@Url.Action("Reject", "SourceList")',
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify(dataToSend),
+                            success: function(response) {
+                                Swal.fire('Rejected!', response.message, 'success')
+                                    .then(() => window.location.href = '@ViewData["ReturnUrl"]');
+                            },
+                            error: function() {
+                                Swal.fire('Error!', 'An unknown error occurred.', 'error');
+                            }
+                        });
                     }
                 });
             });
 
+            // UNTUK TOMBOL COPY LINK
             $('#btnCopyLink').on('click', function() {
                 navigator.clipboard.writeText(window.location.href).then(() => {
                     Swal.fire({

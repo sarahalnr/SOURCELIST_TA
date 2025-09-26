@@ -246,5 +246,38 @@ namespace sourcelist.Services
             return viewModel; 
         }
 
+        public async Task ApproveSourceListAsync(ApprovalViewModel model)
+        {
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            using (var connection = new SqlConnection(connectionString))
+            {
+                using (var command = new SqlCommand("SOURCELIST_APPROVE", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@SourceListNumber", model.SourceListNumber);
+                    command.Parameters.AddWithValue("@ValidityPeriod", model.ValidityPeriod);
+                    //command.Parameters.AddWithValue("@Remark", (object)model.Remark ?? DBNull.Value);
+                    await connection.OpenAsync();
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+        public async Task RejectSourceListAsync(ApprovalViewModel model)
+        {
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            using (var connection = new SqlConnection(connectionString))
+            {
+                using (var command = new SqlCommand("SOURCELIST_REJECT", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@SourceListNumber", model.SourceListNumber);
+                    //command.Parameters.AddWithValue("@Remark", model.Remark);
+                    await connection.OpenAsync();
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+        }
     }
+
 }
