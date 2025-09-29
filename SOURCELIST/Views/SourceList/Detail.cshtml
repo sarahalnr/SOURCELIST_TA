@@ -215,6 +215,15 @@
 
     <script>
         $(function() {
+
+            //VALIDITY PERIOD
+             $('#validityPeriod').on('change', function() {
+            if ($(this).val() !== '') {
+                $('#btnReject').prop('disabled', true);
+            } else {
+                $('#btnReject').prop('disabled', false);
+            }
+        });
             // UNTUK TOMBOL APPROVE
             $('#btnApprove').on('click', function () {
                 const validityPeriod = $('#validityPeriod').val();
@@ -297,7 +306,7 @@
                     console.error('Could not copy text: ', err);
                     Swal.fire('Oops!', 'Failed to copy the link.', 'error');
                 });
-            });
+            });        
 
         });
     </script>
