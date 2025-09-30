@@ -236,8 +236,9 @@ namespace sourcelist.Services
                                 ApproverEmail = reader["ApproverEmail"].ToString(),
                                 AttachmentFileName = reader["AttachmentFileName"]?.ToString(), 
                                 AttachedEndorsement = reader["AttachedEndorsement"]?.ToString(),
-                                SubmittedDate = reader["SubmittedDate"] != DBNull.Value ? Convert.ToDateTime(reader["SubmittedDate"]) : null
-                            
+                                SubmittedDate = reader["SubmittedDate"] != DBNull.Value ? Convert.ToDateTime(reader["SubmittedDate"]) : null,
+                                ValidityPeriod = reader["ValidityPeriod"]?.ToString()
+
                             };
                         }
                     }

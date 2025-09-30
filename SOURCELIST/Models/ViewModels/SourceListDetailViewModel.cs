@@ -21,5 +21,6 @@ namespace sourcelist.Models.ViewModels
         public DateTime? SubmittedDate { get; set; }
         public string AttachmentFileName { get; set; }
         public string AttachedEndorsement { get; set; }
+        public string ValidityPeriod { get; set; }
     }
 }

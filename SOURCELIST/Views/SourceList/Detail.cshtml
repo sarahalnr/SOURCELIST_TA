@@ -12,6 +12,15 @@
         "CANCELED" => (Class: "status-btn-CANCELED", Icon: "bi-slash-circle"),
         _ => (Class: "status-btn-DEFAULT", Icon: "bi-question-circle"),
     };
+    // Logika baru untuk ApproverStatus
+    var approverStatus = Model.ApproverStatus?.Trim().ToUpper() ?? "PENDING";
+    var approverStatusConfig = approverStatus switch
+    {
+        "PENDING" => (Class: "status-btn-PENDING", Icon: "bi-hourglass-split"),
+        "COMPLETED" => (Class: "status-btn-APPROVED", Icon: "bi-check-circle"),
+        "REJECTED" => (Class: "status-btn-REJECTED", Icon: "bi-x-circle"),
+        _ => (Class: "status-btn-DEFAULT", Icon: "bi-question-circle"),
+    };
 }
 
 @section Head {
@@ -129,6 +138,14 @@
             </span>
         </div>
         <div class="data-block">
+        <div class="data-row">
+            <label>ApproverStatus</label>
+            <div class="value" style="padding: 0; background-color: transparent; border: none;">
+                <span class="status-btn @approverStatusConfig.Class">
+                    <i class="bi @approverStatusConfig.Icon"></i> @Model.ApproverStatus
+                </span>
+            </div>
+        </div>
             <div class="data-row"><label>Requestor</label><div class="value">@Model.Requestor</div></div>
             <div class="data-row"><label>BAU No. / Part Number</label><div class="value">@Model.BAUNumber</div></div>
             <div class="data-row"><label>Part Description</label><div class="value">@Model.PartDescription</div></div>
@@ -176,6 +193,13 @@
             <div class="data-block">
                 <div class="data-row"><label>Approver Name</label><div class="value">@Model.ApproverName</div></div>
                 <div class="data-row"><label>Approver Email</label><div class="value">@Model.ApproverEmail</div></div>
+                @if (approverStatus == "COMPLETED")
+                {
+                    <div class="data-row">
+                        <label>Validity Period</label>
+                        <div class="value">@Model.ValidityPeriod</div> 
+                    </div>
+                }
             </div>
  
  @if (ViewBag.ShowApprovalButtons as bool? == true)
