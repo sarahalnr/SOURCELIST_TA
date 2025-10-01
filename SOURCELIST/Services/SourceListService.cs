@@ -279,6 +279,60 @@ namespace sourcelist.Services
                 }
             }
         }
+
+        public async Task<PagedResult<SourceListDTO>> GetSourceListsForAllSourceListPagedAsync(string email, int pageNumber, int pageSize, string sortColumn, string sortDirection, string searchTerm)
+        {
+            var dataList = new List<SourceListDTO>();
+            int totalRows = 0;
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+
+                using (var command = new SqlCommand("SOURCELIST_GET_ALL_SOURCELIST", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@EmailLogin", email);
+                    command.Parameters.AddWithValue("@PageNumber", pageNumber);
+                    command.Parameters.AddWithValue("@PageSize", pageSize);
+                    command.Parameters.AddWithValue("@SortColumn", sortColumn);
+                    command.Parameters.AddWithValue("@SortDirection", sortDirection);
+                    command.Parameters.AddWithValue("@SearchTerm", string.IsNullOrEmpty(searchTerm) ? DBNull.Value : searchTerm);
+
+                    var totalRowsParam = new SqlParameter("@TotalRows", SqlDbType.Int) { Direction = ParameterDirection.Output };
+                    command.Parameters.Add(totalRowsParam);
+
+                    await connection.OpenAsync();
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            dataList.Add(new SourceListDTO
+                            {
+                                SourceListNumber = reader["SourceListNumber"].ToString(),
+                                Requestor = reader["Requestor"].ToString(),
+                                SubmittedDate = reader["SubmittedDate"] != DBNull.Value ? Convert.ToDateTime(reader["SubmittedDate"]) : default,
+                                BAUNumber = reader["BAUNumber"].ToString(),
+                                PartDescription = reader["PartDescription"].ToString(),
+                                SupplierName = reader["SupplierName"].ToString(),
+                                VendorCode = reader["VendorCode"].ToString(),
+                                ReasonSubmission = reader["ReasonSubmission"].ToString(),
+                                SourceListStatus = reader["SourceListStatus"].ToString(),
+                                ApproverStatus = reader["ApproverStatus"]?.ToString()
+                            });
+                        }
+                    }
+
+                    if (totalRowsParam.Value != DBNull.Value)
+                    {
+                        totalRows = (int)totalRowsParam.Value;
+                    }
+                }
+            }
+            return new PagedResult<SourceListDTO> { Data = dataList, TotalRows = totalRows, TotalPages = (int)Math.Ceiling((double)totalRows / pageSize) };
+        }
+
+
     }
 
 }

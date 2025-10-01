@@ -70,7 +70,7 @@
                         <td>@item.VendorCode</td>
                         <td>@item.ReasonSubmission</td>
                         <td>
-                            <a asp-action="Detail" asp-controller="SourceList" asp-route-id="@item.SourceListNumber" asp-route-source="@source" class="btn btn-view btn-sm">View</a>
+                            <a asp-action="Detail" asp-controller="SourceList" asp-route-id="@item.SourceListNumber" asp-route-source="@source" asp-route-page="@ViewBag.Page" class="btn btn-view btn-sm">View</a>
                         </td>
                     </tr>
                 }

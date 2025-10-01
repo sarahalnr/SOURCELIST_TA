@@ -44,5 +44,14 @@ namespace sourcelist.Services
 
         Task ApproveSourceListAsync(ApprovalViewModel model);
         Task RejectSourceListAsync(ApprovalViewModel model);
+
+
+        Task<PagedResult<SourceListDTO>> GetSourceListsForAllSourceListPagedAsync(
+            string email,
+            int pageNumber,
+            int pageSize,
+            string sortColumn,
+            string sortDirection,
+            string searchTerm);
     }
 }

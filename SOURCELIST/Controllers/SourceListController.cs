@@ -208,13 +208,21 @@ namespace sourcelist.Controllers
 
             return View(result);
         }
-
         [HttpGet]
-        public async Task<IActionResult> Detail(string id, string source)
+        public async Task<IActionResult> Detail(string id, string source, int page = 1) 
         {
             if (string.IsNullOrEmpty(id))
             {
                 return BadRequest("Source List Number is required.");
+            }
+
+            var currentUser = HttpContext.Session.GetObjectFromJson<sourcelist.Models.UserInfo>("UserInfo");
+            if (currentUser == null)
+            {
+                TempData["SweetAlertMessage"] = "Session not found. You are redirecting to Home.";
+                TempData["SweetAlertType"] = "error";
+                TempData["SweetAlertRedirect"] = Url.Action("Index", "Home");
+                return RedirectToAction("Index", "Home");
             }
 
             var viewModel = await _sourceListService.GetSourceListDetailAsync(id);
@@ -224,27 +232,32 @@ namespace sourcelist.Controllers
                 return NotFound($"Source List with number {id} not found.");
             }
 
-            bool isFromApprovePage = "Approve".Equals(source, StringComparison.OrdinalIgnoreCase);
+            bool isFromAllowedPage = "Approve".Equals(source, StringComparison.OrdinalIgnoreCase) ||
+                                     "All".Equals(source, StringComparison.OrdinalIgnoreCase) ||
+                                     "AllSourceList".Equals(source, StringComparison.OrdinalIgnoreCase);
 
-           
             bool isPending = "PENDING".Equals(viewModel.ApproverStatus, StringComparison.OrdinalIgnoreCase);
-      
+            bool isCurrentUserTheApprover = currentUser.Email.Equals(viewModel.ApproverEmail, StringComparison.OrdinalIgnoreCase);
 
-            ViewBag.ShowApprovalButtons = isFromApprovePage && isPending;
+            ViewBag.ShowApprovalButtons = isFromAllowedPage && isPending && isCurrentUserTheApprover;
 
-            if (isFromApprovePage)
+            if ("Approve".Equals(source, StringComparison.OrdinalIgnoreCase))
             {
-                ViewData["ReturnUrl"] = Url.Action("IndexForApprove", "SourceList");
+                ViewData["ReturnUrl"] = Url.Action("IndexForApprove", "SourceList", new { page = page });
+            }
+            else if ("All".Equals(source, StringComparison.OrdinalIgnoreCase) || "AllSourceList".Equals(source, StringComparison.OrdinalIgnoreCase))
+            {
+                ViewData["ReturnUrl"] = Url.Action("AllSourceList", "SourceList", new { page = page });
             }
             else
             {
-                ViewData["ReturnUrl"] = Url.Action("IndexMySourceList", "SourceList");
+                ViewData["ReturnUrl"] = Url.Action("IndexMySourceList", "SourceList", new { page = page });
             }
 
             return View(viewModel);
         }
 
-      
+
         [HttpPost]
         public async Task<IActionResult> Approve([FromBody] ApprovalViewModel model)
         {
@@ -305,6 +318,46 @@ namespace sourcelist.Controllers
         }
 
 
+        [HttpGet]
+        public async Task<IActionResult> AllSourceList(
+     int page = 1,
+     int pageSize = 10,
+     string sortColumn = "SubmitDate",
+     string sortDirection = "DESC",
+     string searchTerm = null,
+     bool isAjax = false)
+        {
+            var UserInfo = HttpContext.Session.GetObjectFromJson<sourcelist.Models.UserInfo>("UserInfo");
+            if (UserInfo == null)
+            {
+                TempData["SweetAlertMessage"] = "Session not found. You are redirecting to Home.";
+                TempData["SweetAlertType"] = "error";
+                TempData["SweetAlertRedirect"] = Url.Action("Index", "Home");
+                return RedirectToAction("Index", "Home");
+            }
+
+            string email = UserInfo.Email;
+
+            // Memanggil semua data
+            var result = await _sourceListService.GetSourceListsForAllSourceListPagedAsync(email, page, pageSize, sortColumn, sortDirection, searchTerm);
+
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalRows = result.TotalRows;
+            ViewBag.SortColumn = sortColumn;
+            ViewBag.SortDirection = sortDirection;
+            ViewBag.SearchTerm = searchTerm;
+
+           
+            ViewData["Source"] = "AllSourceList";
+
+            if (isAjax)
+            {
+                return PartialView("_MySourceListTable", result);
+            }
+
+            return View(result);
+        }
         [HttpGet]
         public JsonResult SearchApprovers(string term)
         {
