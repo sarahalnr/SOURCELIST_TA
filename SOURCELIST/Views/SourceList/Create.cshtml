@@ -128,7 +128,7 @@
             <div class="row mb-3 align-items-center">
                 <label for="supplierStatus" class="col-sm-3 col-form-label">Supplier status</label>
                 <div class="col-sm-5"><select id="supplierStatus" name="SupplierStatus" class="form-select" required>
-                    <option selected value=""></option>
+                    <option value="">-- Select --</option>
                     <option value="New">New</option>
                     <option value="Existing">Existing</option>
                     <option value="Transfer">Transfer</option></select></div>
@@ -136,7 +136,7 @@
             <div class="row mb-3 align-items-center">
                 <label for="sourceListStatus" class="col-sm-3 col-form-label">Source list status</label>
                 <div class="col-sm-5"><select id="sourceListStatus" name="SourceListStatus" class="form-select" required>
-                    <option selected></option>
+                    <option value="">-- Select --</option>
                     <option value="New">New</option>
                     <option value="Extend">Extend</option></select></div>
                 </div>
@@ -147,7 +147,7 @@
                     <div class="file-input-wrapper">
                         <input type="file" id="supplierAssessmentForm" name="AssessmentAttachmentFile" accept=".pdf" disabled>
                         <div id="assessmentFileDisplay" class="file-display disabled">
-                            <span id="assessmentFileName">No file chosen (PDF file)</span>
+                            <span id="assessmentFileName">Choose File (PDF file)</span>
                             <button type="button" id="assessmentFileClear" class="file-clear-button" style="display: none;"><i class="bi bi-x"></i></button>
                         </div>
                     </div>
@@ -160,7 +160,7 @@
                     <div class="file-input-wrapper">
                         <input type="file" id="endorsementForm" name="AttachedEndorsementFile" accept=".pdf" disabled>
                         <div id="endorsementFileDisplay" class="file-display disabled">
-                            <span id="endorsementFileName">No file chosen (PDF file)</span>
+                            <span id="endorsementFileName">Choose File (PDF file)</span>
                             <button type="button" id="endorsementFileClear" class="file-clear-button" style="display: none;"><i class="bi bi-x"></i></button>
                         </div>
                     </div>
@@ -225,7 +225,7 @@
                         fileSet.clearButton.show();
                         fileSet.display.removeClass('input-error');
                     } else {
-                        fileSet.fileName.text('No file chosen (PDF file)');
+                        fileSet.fileName.text('Choose file (PDF file)');
                         fileSet.clearButton.hide();
                     }
                 });
@@ -273,8 +273,12 @@
             setupFileInput(endorsementFileInput);
 
             $('#supplierStatus, #sourceListStatus').select2({
-                theme: 'bootstrap-5', width: '100%', placeholder: "-- select --"
-            });
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: "-- Select --",
+            allowClear: true,
+            minimumResultsForSearch: Infinity
+        });
 
             approver.dropdown.select2({
                 theme: 'bootstrap-5', placeholder: '-- Search Approver --', allowClear: true, minimumInputLength: 3,
