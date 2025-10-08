@@ -352,15 +352,15 @@
 
                 if (emptyFields.length > 0) {
                     Swal.fire({
-                        icon: 'warning', title: 'Data Tidak Lengkap',
-                        html: 'Data berikut wajib diisi:<br><ul style="text-align:left; list-style-position: inside;">' + emptyFields.map(f => `<li>${f}</li>`).join('') + '</ul>'
+                        icon: 'warning', title: 'Please fill in all required fields',
+                        html: 'The following fields cannot be empty:<br><ul style="text-align:left; list-style-position: inside;">' + emptyFields.map(f => `<li>${f}</li>`).join('') + '</ul>'
                     });
                     return;
                 }
 
                 // Jika validasi lolos, lanjutkan konfirmasi
                 Swal.fire({
-                    title: 'Konfirmasi', text: "Apakah Anda yakin semua data sudah benar?", icon: 'question',
+                    title: 'Confirmation', text: "Are you sure all the data is correct?", icon: 'question',
                     showCancelButton: true, confirmButtonText: 'Yes, Submit!'
                 }).then((result) => {
                     if (result.isConfirmed) {
