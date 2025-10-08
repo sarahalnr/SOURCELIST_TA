@@ -195,6 +195,18 @@
            class="@(currentController == "SourceList" && currentAction == "AllSourceList" ? "active" : "")">
 			<i class="bi bi-list-ul"></i><span>All Source List</span>
 		</a>
+        <a asp-controller="Admin" asp-action="ManageUser"
+           class="@(currentController == "SourceList" && currentAction == "ManageUser" ? "active" : "")">
+            <i class="bi bi-people"></i><span>Manage User</span>
+        </a>
+        <a asp-controller="Admin" asp-action="ManageSupplier"
+           class="@(currentController == "SourceList" && currentAction == "ManageSupplier" ? "active" : "")">
+            <i class="bi bi-building-gear"></i><span>Manage Supplier</span>
+        </a>
+        <a asp-controller="SourceList" asp-action="Logout"
+           class="@(currentController == "SourceList" && currentAction == "Logout" ? "active" : "")">
+            <i class="bi bi-box-arrow-right"></i><span>Logout</span>
+        </a>
 	</nav>
 
 	<!-- Main Content -->

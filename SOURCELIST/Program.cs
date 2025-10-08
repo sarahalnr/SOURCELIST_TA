@@ -17,6 +17,8 @@ builder.Services.AddSingleton<IConnectionString, ConnectionString>();
 
 builder.Services.AddScoped<ISourceListService, SourceListService>();
 
+builder.Services.AddScoped<IUserService, UserService>();
+
 
 builder.Services.Configure<LDAPOptions>(builder.Configuration.GetSection("LDAP"));
 builder.Services.AddScoped<ILDAPService, LDAPService>();

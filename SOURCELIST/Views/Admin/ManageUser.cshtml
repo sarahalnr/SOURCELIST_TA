@@ -1,0 +1,224 @@
+﻿@model sourcelist.Services.PagedResult<sourcelist.DTOs.UserDTO>
+
+@{
+
+    ViewData["Title"] = "Manage User";
+    int page = ViewBag.Page ?? 1;
+    int pageSize = ViewBag.PageSize ?? 10;
+    int totalRows = ViewBag.TotalRows ?? 0;
+    int totalPages = (int)Math.Ceiling((double)totalRows / pageSize);
+    int startRow = (page - 1) * pageSize + 1;
+    int endRow = startRow + Model.Data.Count() - 1;
+
+    int maxPagesToShow = 5;
+    int startPage = Math.Max(1, page - maxPagesToShow / 2);
+    int endPage = Math.Min(totalPages, startPage + maxPagesToShow - 1);
+    startPage = Math.Max(1, endPage - maxPagesToShow + 1);
+}
+
+<div class="container-fluid">
+    <h3 class="mb-4">Manage User</h3>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Daftar Pengguna Sistem</h6>
+        </div>
+        <div class="card-body">
+
+            <button type="button" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                Create User
+            </button>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+
+                
+                    <thead class="table-light">
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Password</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Data != null && Model.Data.Any())
+                        {
+                    
+                            foreach (var user in Model.Data)
+                            {
+                                <tr>
+                                    <td>@user.Username</td>
+                                    <td>@user.Email</td>
+                                    <td>********</td>
+                                    <td>@user.Role</td>
+                                    <td>
+                                        <span class="badge @(user.Status == "Aktif" ? "bg-success" : "bg-danger")">@user.Status</span>
+                                    </td>
+                                    <td>
+                                        @* Tombol Edit untuk memicu pop-up "Edit User" *@
+                                        <button type="button" class="btn btn-warning btn-sm btn-edit"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editUserModal"
+                                                data-id="@user.ID_User"
+                                                data-username="@user.Username"
+                                                data-email="@user.Email"
+                                                data-role="@user.Role"
+                                                data-status="@user.Status">
+                                            Edit
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center">Tidak ada data user.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+        
+            @if (totalPages > 1)
+            {
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-end">
+                       @*kodenya blm lengkap*@
+                    </ul>
+                </nav>
+            }
+        </div>
+    </div>
+</div>
+
+@* MODAL (POP-UP) UNTUK CREATE & EDIT *@
+
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createUserModalLabel">New User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form asp-action="CreateUser" asp-controller="Admin">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" name="Username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email User</label>
+                        <input type="email" class="form-control" id="email" name="Email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password User</label>
+                        <input type="password" class="form-control" id="password" name="Password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Role</label>
+                        <select class="form-select" id="role" name="Role" required>
+                            <option value="Requestor">Requestor</option>
+                            <option value="Approver">Approver</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form asp-action="EditUser" asp-controller="Admin">
+                    <input type="hidden" id="edit-id" name="ID_User" />
+                    <div class="mb-3">
+                        <label for="edit-username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="edit-username" name="Username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-email" class="form-label">Email User</label>
+                        <input type="email" class="form-control" id="edit-email" name="Email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-password" class="form-label">Password User</label>
+                        <input type="password" class="form-control" id="edit-password" name="Password" placeholder="Kosongkan jika tidak ingin diubah">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-role" class="form-label">Role</label>
+                        <select class="form-select" id="edit-role" name="Role" required>
+                            <option value="Requestor">Requestor</option>
+                            <option value="Approver">Approver</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-status" class="form-label">Status</label>
+                        <select class="form-select" id="edit-status" name="Status" required>
+                            <option value="Aktif">Aktif</option>
+                            <option value="Non-Aktif">Non-Aktif</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Script ini akan berjalan saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Cari modal edit
+            var editUserModal = document.getElementById('editUserModal');
+
+            // Tambahkan event listener untuk menampilkan modal
+            editUserModal.addEventListener('show.bs.modal', function (event) {
+                // Tombol yang di-klik
+                var button = event.relatedTarget;
+
+                // Ambil data dari atribut 'data-*' di tombol
+                var id = button.getAttribute('data-id');
+                var username = button.getAttribute('data-username');
+                var email = button.getAttribute('data-email');
+                var role = button.getAttribute('data-role');
+                var status = button.getAttribute('data-status');
+
+                // Cari elemen form di dalam modal
+                var modalBody = editUserModal.querySelector('.modal-body');
+                var idInput = modalBody.querySelector('#edit-id');
+                var usernameInput = modalBody.querySelector('#edit-username');
+                var emailInput = modalBody.querySelector('#edit-email');
+                var roleInput = modalBody.querySelector('#edit-role');
+                var statusInput = modalBody.querySelector('#edit-status');
+
+                // Isi nilai form dengan data dari tombol
+                idInput.value = id;
+                usernameInput.value = username;
+                emailInput.value = email;
+                roleInput.value = role;
+                statusInput.value = status;
+            });
+        });
+    </script>
+}
