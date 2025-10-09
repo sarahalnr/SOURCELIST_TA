@@ -6,6 +6,7 @@ using sourcelist.Infrastructure;
 using sourcelist.Models;
 using sourcelist.Provider;
 using sourcelist.Services;
+using BCrypt.Net;
 
 
 var builder = WebApplication.CreateBuilder(args); 
@@ -43,6 +44,11 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 // app.UsePathBase("/e-fair"); 
+
+string hashBaru = BCrypt.Net.BCrypt.HashPassword("password123");
+Console.WriteLine("$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy");
+Console.WriteLine(hashBaru);
+Console.WriteLine("$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy");
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

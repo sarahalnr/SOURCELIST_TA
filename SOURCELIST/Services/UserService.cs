@@ -36,7 +36,7 @@ public class UserService : IUserService
     //    }
     //}
 
-   
+
 
     //public async Task UpdateUserAsync(UserDTO userDto)
     //{
@@ -70,15 +70,16 @@ public class UserService : IUserService
     public async Task<UserDTO> AuthenticateAsync(string email, string password)
     {
         UserDTO user = null;
-        var connectionString = _configuration.GetConnectionString("DefaultConnection");
-
-        using (var connection = new SqlConnection(connectionString))
+        // Anda sudah punya _connectionString di level class, jadi bisa langsung dipakai
+        using (var connection = new SqlConnection(_connectionString))
         {
-            // Asumsi Anda punya SP untuk mengambil user berdasarkan email
+            // Panggil SP yang sudah diperbaiki
             using (var command = new SqlCommand("GET_USER_LOGIN", connection))
             {
                 command.CommandType = CommandType.StoredProcedure;
+                // Baris ini sudah benar, mengirimkan @Email
                 command.Parameters.AddWithValue("@Email", email);
+
 
                 await connection.OpenAsync();
                 using (var reader = await command.ExecuteReaderAsync())
@@ -88,14 +89,17 @@ public class UserService : IUserService
                         // Cek apakah status user Aktif
                         if (reader["Status"].ToString() == "Aktif")
                         {
-                           
-                            string hashedPassword = reader["UserPassword"].ToString(); 
+                            // Ambil password HASH dari database
+                            string hashedPassword = reader["UserPassword"].ToString();
 
+                            // Verifikasi password yang diinput user dengan hash di database
                             if (BC.Verify(password, hashedPassword))
                             {
+                                // Jika cocok, buat objek user
                                 user = new UserDTO
                                 {
-                                    ID_User = (int)reader["UserID"], 
+                                    // Ambil UserID dari kolom UserID, bukan sebaliknya
+                                    ID_User = Convert.ToInt32(reader["UserID"]),
                                     Username = reader["Username"].ToString(),
                                     Email = reader["Email"].ToString(),
                                     Role = reader["Role"].ToString(),
@@ -107,6 +111,6 @@ public class UserService : IUserService
                 }
             }
         }
-        return user; 
+        return user;
     }
 }
