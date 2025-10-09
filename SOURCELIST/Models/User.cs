@@ -1,4 +1,4 @@
-﻿namespace sourcelist.Models.ViewModels
+﻿namespace sourcelist.Models
 {
     public class User
     {

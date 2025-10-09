@@ -1,0 +1,147 @@
+﻿@{
+    Layout = null;
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Login</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        /* Mengatur font dasar */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #0a1e0f;
+            background-image: url('https://t4.ftcdn.net/jpg/03/14/21/53/360_F_314215344_Pnm64qTaGQpFbKYKd03sY2SNc1s2nf73.jpg');
+            background-size: cover;
+        }
+
+        .login-container {
+            position: relative;
+            width: 380px;
+        }
+
+        .login-icon {
+            width: 80px;
+            height: 80px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            color: #333;
+            /* Posisi ikon di atas form */
+            position: absolute;
+            top: -40px; /* Setengah dari tinggi ikon */
+            left: 50%;
+            transform: translateX(-50%);
+            border: 4px solid #f0f0f0;
+        }
+
+        .login-card {
+            background-color: rgba(200, 200, 200, 0.25); 
+            padding: 60px 40px 40px 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+            text-align: center;
+            color: #f0f0f0;
+        }
+
+            .login-card h2 {
+                margin-bottom: 25px;
+                font-weight: 600;
+                letter-spacing: 1px;
+            }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+            .input-group .bi {
+                position: absolute;
+                left: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #888;
+            }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 15px 12px 45px; 
+            border: none;
+            border-radius: 8px;
+            background-color: #e9ecef;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+        }
+
+            .remember-me input {
+                margin-right: 8px;
+            }
+
+        .login-button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background-color: #006400; 
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+            .login-button:hover {
+                background-color: #004d00; 
+            }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <div class="login-icon">
+            <i class="bi bi-person-fill"></i>
+        </div>
+        <div class="login-card">
+            <h2>USER LOGIN</h2>
+            <form action="/Account/Login" method="post">
+                <div class="input-group">
+                    <i class="bi bi-envelope-fill"></i>
+                    <input type="email" class="input-field" name="Email" placeholder="Email User" required>
+                </div>
+                <div class="input-group">
+                    <i class="bi bi-lock-fill"></i>
+                    <input type="password" class="input-field" name="Password" placeholder="Password" required>
+                </div>
+                <div class="remember-me">
+                    <input type="checkbox" id="remember" name="RememberMe">
+                    <label for="remember">Remember Me</label>
+                </div>
+                <button type="submit" class="login-button">LOGIN</button>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

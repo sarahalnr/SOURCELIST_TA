@@ -173,41 +173,61 @@
 </head>
 <body>
 	<!-- Sidebar -->
-	<nav class="sidebar" id="sidebar">
-		<div class="sidebar-header">Source List Web</div>
-        <a asp-controller="Home" asp-action="Index"
-           class="@(currentController == "Home" && currentAction == "Index" ? "active" : "")">
-			<i class="bi bi-house-door"></i><span>Home</span>
-		</a>
-        <a asp-controller="SourceList" asp-action="Create" id="btnCreateSourceList"
-           class="@(currentController == "SourceList" && currentAction == "Create" ? "active" : "")">
-            <i class="bi bi-plus-circle-dotted"></i><span>New Source List</span>
-        </a>
-        <a asp-controller="SourceList" asp-action="IndexMySourceList"
-           class="@(currentController == "SourceList" && currentAction == "IndexMySourceList" ? "active" : "")">
-            <i class="bi bi-person-lines-fill"></i><span>My Source List</span>
-        </a>
-        <a asp-controller="SourceList" asp-action="IndexForApprove"
-           class="@(currentController == "SourceList" && currentAction == "IndexForApprove" ? "active" : "")">
-            <i class="bi bi-check"></i><span>Approve</span>
-        </a>
-        <a asp-controller="SourceList" asp-action="AllSourceList"
-           class="@(currentController == "SourceList" && currentAction == "AllSourceList" ? "active" : "")">
-			<i class="bi bi-list-ul"></i><span>All Source List</span>
-		</a>
-        <a asp-controller="Admin" asp-action="ManageUser"
-           class="@(currentController == "SourceList" && currentAction == "ManageUser" ? "active" : "")">
-            <i class="bi bi-people"></i><span>Manage User</span>
-        </a>
-        <a asp-controller="Admin" asp-action="ManageSupplier"
-           class="@(currentController == "SourceList" && currentAction == "ManageSupplier" ? "active" : "")">
-            <i class="bi bi-building-gear"></i><span>Manage Supplier</span>
-        </a>
-        <a asp-controller="SourceList" asp-action="Logout"
-           class="@(currentController == "SourceList" && currentAction == "Logout" ? "active" : "")">
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">Source List Web</div>
+
+        @if (User.IsInRole("Requestor") || User.IsInRole("Approver") || User.IsInRole("Admin"))
+        {
+            <a asp-controller="Home" asp-action="Index"
+               class="@(currentController == "Home" && currentAction == "Index" ? "active" : "")">
+                <i class="bi bi-house-door"></i><span>Home</span>
+            </a>
+        }
+
+        @if (User.IsInRole("Requestor"))
+        {
+            <a asp-controller="SourceList" asp-action="Create"
+               class="@(currentController == "SourceList" && currentAction == "Create" ? "active" : "")">
+                <i class="bi bi-plus-circle-dotted"></i><span>New Source List</span>
+            </a>
+            <a asp-controller="SourceList" asp-action="IndexMySourceList"
+               class="@(currentController == "SourceList" && currentAction == "IndexMySourceList" ? "active" : "")">
+                <i class="bi bi-person-lines-fill"></i><span>My Source List</span>
+            </a>
+        }
+
+        @if (User.IsInRole("Approver"))
+        {
+            <a asp-controller="SourceList" asp-action="IndexForApprove"
+               class="@(currentController == "SourceList" && currentAction == "IndexForApprove" ? "active" : "")">
+                <i class="bi bi-check"></i><span>Approve</span>
+            </a>
+        }
+
+        @if (User.IsInRole("Requestor") || User.IsInRole("Approver") || User.IsInRole("Admin"))
+        {
+            <a asp-controller="SourceList" asp-action="AllSourceList"
+               class="@(currentController == "SourceList" && currentAction == "AllSourceList" ? "active" : "")">
+                <i class="bi bi-list-ul"></i><span>All Source List</span>
+            </a>
+        }
+
+        @if (User.IsInRole("Admin"))
+        {
+            <a asp-controller="Admin" asp-action="ManageUser"
+               class="@(currentController == "Admin" && currentAction == "ManageUser" ? "active" : "")">
+                <i class="bi bi-people"></i><span>Manage User</span>
+            </a>
+            <a asp-controller="Admin" asp-action="ManageSupplier"
+               class="@(currentController == "Admin" && currentAction == "ManageSupplier" ? "active" : "")">
+                <i class="bi bi-building-gear"></i><span>Manage Supplier</span>
+            </a>
+        }
+
+        <a asp-controller="Account" asp-action="Logout">
             <i class="bi bi-box-arrow-right"></i><span>Logout</span>
-        </a>
-	</nav>
+        </a>    
+    </nav>
 
 	<!-- Main Content -->
 	<div class="main-content">

@@ -320,13 +320,13 @@ namespace sourcelist.Controllers
 
         [HttpGet]
         public async Task<IActionResult> AllSourceList(
-     int page = 1,
-     int pageSize = 10,
-     string sortColumn = "SubmitDate",
-     string sortDirection = "DESC",
-     string searchTerm = null,
-     bool isAjax = false)
-        {
+         int page = 1,
+         int pageSize = 10,
+         string sortColumn = "SubmitDate",
+         string sortDirection = "DESC",
+         string searchTerm = null,
+         bool isAjax = false)
+            {
             var UserInfo = HttpContext.Session.GetObjectFromJson<sourcelist.Models.UserInfo>("UserInfo");
             if (UserInfo == null)
             {
@@ -371,5 +371,7 @@ namespace sourcelist.Controllers
             });
             return Json(result);
         }
+
+
+        }
     }
-}

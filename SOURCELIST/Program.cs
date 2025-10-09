@@ -1,17 +1,25 @@
 
-using sourcelist.Models;
-using sourcelist.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Negotiate;
+using Microsoft.Extensions.FileSystemGlobbing.Internal.Patterns;
 using sourcelist.Infrastructure;
+using sourcelist.Models;
 using sourcelist.Provider;
+using sourcelist.Services;
 
 
 var builder = WebApplication.CreateBuilder(args); 
 
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
-    .AddNegotiate();
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login"; 
+        options.LogoutPath = "/Account/Logout";
+        options.AccessDeniedPath = "/Home/AccessDenied"; 
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+    });
 
 builder.Services.AddSingleton<IConnectionString, ConnectionString>();
 
@@ -52,6 +60,7 @@ if (!app.Environment.IsDevelopment())
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Account}/{action=Login}/{id?}");
 
 app.Run();
+
