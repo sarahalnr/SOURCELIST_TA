@@ -70,35 +70,25 @@ public class UserService : IUserService
     public async Task<UserDTO> AuthenticateAsync(string email, string password)
     {
         UserDTO user = null;
-        // Anda sudah punya _connectionString di level class, jadi bisa langsung dipakai
+        
         using (var connection = new SqlConnection(_connectionString))
         {
-            // Panggil SP yang sudah diperbaiki
-            using (var command = new SqlCommand("GET_USER_LOGIN", connection))
+            using (var command = new SqlCommand("Get_USER_LOGIN", connection))
             {
                 command.CommandType = CommandType.StoredProcedure;
-                // Baris ini sudah benar, mengirimkan @Email
                 command.Parameters.AddWithValue("@Email", email);
-
-
                 await connection.OpenAsync();
                 using (var reader = await command.ExecuteReaderAsync())
                 {
                     if (await reader.ReadAsync())
                     {
-                        // Cek apakah status user Aktif
-                        if (reader["Status"].ToString() == "Aktif")
+                        if (reader["Status"].ToString().Trim().Equals("Aktif", StringComparison.OrdinalIgnoreCase))
                         {
-                            // Ambil password HASH dari database
                             string hashedPassword = reader["UserPassword"].ToString();
-
-                            // Verifikasi password yang diinput user dengan hash di database
                             if (BC.Verify(password, hashedPassword))
                             {
-                                // Jika cocok, buat objek user
                                 user = new UserDTO
                                 {
-                                    // Ambil UserID dari kolom UserID, bukan sebaliknya
                                     ID_User = Convert.ToInt32(reader["UserID"]),
                                     Username = reader["Username"].ToString(),
                                     Email = reader["Email"].ToString(),

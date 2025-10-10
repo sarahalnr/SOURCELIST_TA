@@ -34,6 +34,7 @@ public class AccountController : Controller
     {
         if (ModelState.IsValid)
         {
+
             var user = await _userService.AuthenticateAsync(model.Email, model.Password);
 
             if (user != null)
