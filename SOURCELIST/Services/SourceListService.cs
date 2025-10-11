@@ -19,7 +19,7 @@ namespace sourcelist.Services
             _configuration = configuration;
         }
 
-     
+
         public async Task<string> CreateNewSourceListAsync(SourceListCreateViewModel model, string attachmentFileName, string endorsementFileName)
         {
             var connectionString = _configuration.GetConnectionString("DefaultConnection");
@@ -27,26 +27,29 @@ namespace sourcelist.Services
 
             using (var connection = new SqlConnection(connectionString))
             {
+                // Memanggil SATU Stored Procedure utama yang melakukan semuanya
                 using (var command = new SqlCommand("SOURCELIST_INSERT_NEW_SOURCELIST", connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
 
-                    // Parameter yang dikirim ke Stored Procedure
-                    command.Parameters.AddWithValue("@Requestor", model.Requestor);
-                    command.Parameters.AddWithValue("@RequestorEmail", model.RequestorEmail);
+
+                    command.Parameters.AddWithValue("@RequestorId", model.RequestorId);
+                    command.Parameters.AddWithValue("@ApproverId", model.ApproverId);
+                    command.Parameters.AddWithValue("@SupplierId", model.SupplierId);
+
+                    // Parameter lainnya dari form
                     command.Parameters.AddWithValue("@BAUNumber", model.BAUNumber);
                     command.Parameters.AddWithValue("@PartDescription", model.PartDescription);
-                    command.Parameters.AddWithValue("@SupplierName", model.SupplierName);
-                    command.Parameters.AddWithValue("@VendorCode", model.VendorCode);
                     command.Parameters.AddWithValue("@SupplierStatus", model.SupplierStatus);
                     command.Parameters.AddWithValue("@SourceListStatus", model.SourceListStatus);
-                    command.Parameters.AddWithValue("@CMSFinalCRB", model.CMSFinalCRB);
                     command.Parameters.AddWithValue("@ReasonSubmission", model.ReasonSubmission);
-                    command.Parameters.AddWithValue("@ApproverName", model.ApproverName);
-                    command.Parameters.AddWithValue("@ApproverEmail", model.ApproverEmail);
+                    command.Parameters.AddWithValue("@CMSFinalCRB", model.CMSFinalCRB);
 
-                    command.Parameters.AddWithValue("@AttachmentFileName", string.IsNullOrEmpty(attachmentFileName) ? DBNull.Value : attachmentFileName);
-                    command.Parameters.AddWithValue("@AttachedEndorsement", string.IsNullOrEmpty(endorsementFileName) ? DBNull.Value : endorsementFileName);
+                    // Mengirim nama file
+                    command.Parameters.AddWithValue("@AttachmentFileName",
+                        string.IsNullOrEmpty(attachmentFileName) ? DBNull.Value : (object)attachmentFileName);
+                    command.Parameters.AddWithValue("@AttachedEndorsement",
+                        string.IsNullOrEmpty(endorsementFileName) ? DBNull.Value : (object)endorsementFileName);
 
                     await connection.OpenAsync();
 

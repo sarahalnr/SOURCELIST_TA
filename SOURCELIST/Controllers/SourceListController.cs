@@ -9,20 +9,24 @@ using System.Linq;
 using sourcelist.DTOs;
 using sourcelist.Helper;
 using sourcelist.Models;
+using sourcelist.Data;
+using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace sourcelist.Controllers
 {
     public class SourceListController : Controller
     {
-        private readonly ILDAPService _ldapService;
         private readonly ISourceListService _sourceListService;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly ApplicationDbContext _context; 
 
-        public SourceListController(ILDAPService ldapService, ISourceListService sourceListService, IWebHostEnvironment webHostEnvironment)
+        public SourceListController(ISourceListService sourceListService, IWebHostEnvironment webHostEnvironment, ApplicationDbContext context)
         {
-            _ldapService = ldapService;
             _sourceListService = sourceListService;
             _webHostEnvironment = webHostEnvironment;
+            _context = context; 
         }
 
         public IActionResult Create()
@@ -31,96 +35,107 @@ namespace sourcelist.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken] // Tambahkan ini untuk keamanan
         public async Task<IActionResult> Create(SourceListCreateViewModel model)
         {
-            var UserInfo = HttpContext.Session.GetObjectFromJson<sourcelist.Models.UserInfo>("UserInfo");
+            // 1. PERIKSA APAKAH USER SUDAH LOGIN (CARA BARU YANG BENAR)
+            if (!User.Identity.IsAuthenticated)
+            {
+                return Unauthorized(new { success = false, message = "Sesi Anda telah berakhir. Silakan login kembali." });
+            }
 
+            // 2. AMBIL DATA USER DARI CLAIMS ("KTP DIGITAL")
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var fullNameClaim = User.FindFirst(ClaimTypes.Name)?.Value;
+            var emailClaim = User.FindFirst(ClaimTypes.Email)?.Value;
+
+            // Validasi jika karena suatu hal ID tidak ditemukan di dalam claims
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return StatusCode(500, new { success = false, message = "Informasi User ID tidak ditemukan di sesi login Anda." });
+            }
+
+            // 3. ISI DATA REQUESTOR DARI CLAIMS KE VIEWMODEL
+            model.Requestor = fullNameClaim;
+            model.RequestorEmail = emailClaim;
+            model.RequestorId = int.Parse(userIdClaim);
+
+            try
+            {
+                // 4. CARI APPROVER DAN SUPPLIER DARI DATABASE
+                var approver = await _context.MUsers.FirstOrDefaultAsync(u => u.Role == "Approver");
+                if (approver == null)
+                {
+                    return StatusCode(500, new { success = false, message = "Sistem error: Tidak ada user dengan role 'Approver' yang terdaftar." });
+                }
+                model.ApproverId = approver.UserID;
+
+                var supplier = await _context.MSuppliers.FirstOrDefaultAsync(s => s.NamaSupplier == model.SupplierName);
+                if (supplier == null)
+                {
+                    return BadRequest(new { success = false, message = $"Supplier dengan nama '{model.SupplierName}' tidak ditemukan di data master." });
+                }
+                model.SupplierId = supplier.ID_Supplier;
+            }
+            catch (Exception ex)
+            {
+                // Error ini biasanya terjadi jika ada masalah koneksi ke database
+                return StatusCode(500, new { success = false, message = "Gagal terhubung ke database: " + ex.Message });
+            }
+
+            // 5. LAKUKAN VALIDASI FORM LAINNYA
             if (model.SupplierStatus == "New" && model.AssessmentAttachmentFile == null)
             {
-                ModelState.AddModelError("AttachmentFile", "Supplier Assesment Form is required for new suppliers.");
+                ModelState.AddModelError("AssessmentAttachmentFile", "Supplier Assesment Form wajib diisi untuk supplier baru.");
             }
-
             if (model.SupplierStatus == "Transfer" && model.AttachedEndorsementFile == null)
             {
-                ModelState.AddModelError("EndorsementFile", "Supplier Endorsement List is required for transfer suppliers.");
+                ModelState.AddModelError("AttachedEndorsementFile", "Supplier Endorsement List wajib diisi untuk supplier transfer.");
             }
 
-            model.RequestorEmail = UserInfo.Email;
-
-            
             if (!ModelState.IsValid)
             {
-                // Mengembalikan error jika ada
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
                 return BadRequest(new { success = false, message = "Data tidak valid: " + string.Join(", ", errors) });
             }
 
+            // 6. JIKA SEMUA VALID, PROSES FILE DAN PANGGIL SERVICE
             try
             {
-                string assessmentTempFileName = null;
-                string endorsementTempFileName = null;
-                string tempFolder = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", "temp");
+                string assessmentFileName = (model.AssessmentAttachmentFile != null) ? Path.GetFileName(model.AssessmentAttachmentFile.FileName) : null;
+                string endorsementFileName = (model.AttachedEndorsementFile != null) ? Path.GetFileName(model.AttachedEndorsementFile.FileName) : null;
 
-           
-                if (!Directory.Exists(tempFolder))
+                // Panggil service untuk menyimpan data ke database
+                string newSourceListId = await _sourceListService.CreateNewSourceListAsync(model, assessmentFileName, endorsementFileName);
+
+                // Jika ID tidak kembali, berarti ada error di SP
+                if (string.IsNullOrEmpty(newSourceListId))
                 {
-                    Directory.CreateDirectory(tempFolder);
+                    return StatusCode(500, new { success = false, message = "Gagal membuat data di database. Stored Procedure tidak mengembalikan ID baru." });
                 }
 
-                // Simpan file Assessment ke folder temp
-                if (model.AssessmentAttachmentFile != null)
-                {
-                    assessmentTempFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(model.AssessmentAttachmentFile.FileName);
-                    string tempFilePath = Path.Combine(tempFolder, assessmentTempFileName);
-                    using (var fileStream = new FileStream(tempFilePath, FileMode.Create))
-                    {
-                        await model.AssessmentAttachmentFile.CopyToAsync(fileStream);
-                    }
-                }
-
-                // Simpan file Endorsement ke folder 
-                if (model.AttachedEndorsementFile != null)
-                {
-                    endorsementTempFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(model.AttachedEndorsementFile.FileName);
-                    string tempFilePath = Path.Combine(tempFolder, endorsementTempFileName);
-                    using (var fileStream = new FileStream(tempFilePath, FileMode.Create))
-                    {
-                        await model.AttachedEndorsementFile.CopyToAsync(fileStream);
-                    }
-                }
-
-                string newSourceListId = await _sourceListService.CreateNewSourceListAsync(model, assessmentTempFileName, endorsementTempFileName);
-
-             
+                // Buat folder final berdasarkan ID baru
                 string finalFolder = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", newSourceListId);
                 if (!Directory.Exists(finalFolder))
                 {
                     Directory.CreateDirectory(finalFolder);
                 }
 
-                // Proses file Assessment
-                if (assessmentTempFileName != null)
+                // Pindahkan file dari temp ke folder final
+                if (model.AssessmentAttachmentFile != null)
                 {
-                    string tempFilePath = Path.Combine(tempFolder, assessmentTempFileName);
-                    if (System.IO.File.Exists(tempFilePath))
+                    string finalFilePath = Path.Combine(finalFolder, assessmentFileName);
+                    using (var fileStream = new FileStream(finalFilePath, FileMode.Create))
                     {
-                        string finalFileName = Path.GetFileName(model.AssessmentAttachmentFile.FileName);
-                        string finalFilePath = Path.Combine(finalFolder, finalFileName);
-                        System.IO.File.Move(tempFilePath, finalFilePath);
-                        await _sourceListService.UpdateAttachmentPathAsync(newSourceListId, finalFileName);
+                        await model.AssessmentAttachmentFile.CopyToAsync(fileStream);
                     }
                 }
-
-                // Proses file Endorsement
-                if (endorsementTempFileName != null)
+                if (model.AttachedEndorsementFile != null)
                 {
-                    string tempFilePath = Path.Combine(tempFolder, endorsementTempFileName);
-                    if (System.IO.File.Exists(tempFilePath))
+                    string finalFilePath = Path.Combine(finalFolder, endorsementFileName);
+                    using (var fileStream = new FileStream(finalFilePath, FileMode.Create))
                     {
-                        string finalFileName = Path.GetFileName(model.AttachedEndorsementFile.FileName);
-                        string finalFilePath = Path.Combine(finalFolder, finalFileName);
-                        System.IO.File.Move(tempFilePath, finalFilePath);
-                        await _sourceListService.UpdateEndorsementPathAsync(newSourceListId, finalFileName);
+                        await model.AttachedEndorsementFile.CopyToAsync(fileStream);
                     }
                 }
 
@@ -128,19 +143,19 @@ namespace sourcelist.Controllers
             }
             catch (Exception ex)
             {
-             
-                return StatusCode(500, new { success = false, message = "Terjadi kesalahan server: " + ex.Message });
+                // Menangkap error dari Service atau Stored Procedure
+                return StatusCode(500, new { success = false, message = "Terjadi kesalahan saat menyimpan data: " + ex.InnerException?.Message ?? ex.Message });
             }
         }
 
         [HttpGet]
         public async Task<IActionResult> IndexMySourceList(
-            int page = 1,
-            int pageSize = 10,
-            string sortColumn = "SubmitDate",
-            string sortDirection = "DESC",
-            string searchTerm = null,
-            bool isAjax = false)
+          int page = 1,
+          int pageSize = 10,
+          string sortColumn = "SubmitDate",
+          string sortDirection = "DESC",
+          string searchTerm = null,
+          bool isAjax = false)
         {
 
             var UserInfo = HttpContext.Session.GetObjectFromJson<sourcelist.Models.UserInfo>("UserInfo");
@@ -163,8 +178,8 @@ namespace sourcelist.Controllers
 
             if (isAjax)
             {
-               
-                return PartialView("_MySourceListTable", result); 
+
+                return PartialView("_MySourceListTable", result);
             }
 
             return View(result);
@@ -209,7 +224,7 @@ namespace sourcelist.Controllers
             return View(result);
         }
         [HttpGet]
-        public async Task<IActionResult> Detail(string id, string source, int page = 1) 
+        public async Task<IActionResult> Detail(string id, string source, int page = 1)
         {
             if (string.IsNullOrEmpty(id))
             {
@@ -297,7 +312,7 @@ namespace sourcelist.Controllers
         [HttpGet]
         public IActionResult DownloadFile(string id, [FromQuery] string fileName)
         {
-       
+
             if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(fileName))
             {
                 return BadRequest("Informasi file tidak lengkap.");
@@ -305,13 +320,13 @@ namespace sourcelist.Controllers
 
             string fullPath = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", id, fileName);
 
-    
+
             if (!System.IO.File.Exists(fullPath))
             {
                 return NotFound("File tidak ditemukan di server.");
             }
 
-  
+
             byte[] fileBytes = System.IO.File.ReadAllBytes(fullPath);
 
             return File(fileBytes, "application/octet-stream", fileName);
@@ -326,7 +341,7 @@ namespace sourcelist.Controllers
          string sortDirection = "DESC",
          string searchTerm = null,
          bool isAjax = false)
-            {
+        {
             var UserInfo = HttpContext.Session.GetObjectFromJson<sourcelist.Models.UserInfo>("UserInfo");
             if (UserInfo == null)
             {
@@ -348,7 +363,7 @@ namespace sourcelist.Controllers
             ViewBag.SortDirection = sortDirection;
             ViewBag.SearchTerm = searchTerm;
 
-           
+
             ViewData["Source"] = "AllSourceList";
 
             if (isAjax)
@@ -358,20 +373,21 @@ namespace sourcelist.Controllers
 
             return View(result);
         }
-        [HttpGet]
-        public JsonResult SearchApprovers(string term)
-        {
-            var users = _ldapService.GetAllUsers(term);
-            var result = users.Select(u => new
-            {
-                id = u.UserName,
-                text = $"{u.DisplayName}",
-                email = u.Email,
-                desc = u.BadgeNo
-            });
-            return Json(result);
-        }
+        //[HttpGet]
+        //public JsonResult SearchApprovers(string term)
+        //{
+        //    var users = _ldapService.GetAllUsers(term);
+        //    var result = users.Select(u => new
+        //    {
+        //        id = u.UserName,
+        //        text = $"{u.DisplayName}",
+        //        email = u.Email,
+        //        desc = u.BadgeNo
+        //    });
+        //    return Json(result);
+        //}
 
 
-        }
     }
+}
+    

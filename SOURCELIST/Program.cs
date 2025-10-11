@@ -7,6 +7,8 @@ using sourcelist.Models;
 using sourcelist.Provider;
 using sourcelist.Services;
 using BCrypt.Net;
+using sourcelist.Data;
+using Microsoft.EntityFrameworkCore;
 
 
 var builder = WebApplication.CreateBuilder(args); 
@@ -39,7 +41,10 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(); builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 

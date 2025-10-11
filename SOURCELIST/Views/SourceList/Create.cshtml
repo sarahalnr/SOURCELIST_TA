@@ -1,13 +1,13 @@
 ﻿@using Newtonsoft.Json
-@{
-    var userInfoJson = Context.Session.GetString("UserInfo");
-    UserInfo userInfo = null;
-    if (!string.IsNullOrEmpty(userInfoJson))
-    {
-        userInfo = JsonConvert.DeserializeObject<UserInfo>(userInfoJson);
-    }
-    ViewData["Title"] = "Sourcelist Request";
-}
+@* @{ *@
+@*     var userInfoJson = Context.Session.GetString("UserInfo"); *@
+@*     UserInfo userInfo = null; *@
+@*     if (!string.IsNullOrEmpty(userInfoJson)) *@
+@*     { *@
+@*         userInfo = JsonConvert.DeserializeObject<UserInfo>(userInfoJson); *@
+@*     } *@
+@*     ViewData["Title"] = "Sourcelist Request"; *@
+@* } *@
 
 @section Head {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
@@ -98,6 +98,7 @@
 }
 
 <form id="sourcelistForm" novalidate>
+    @Html.AntiForgeryToken()
     <div class="form-header">
         Sourcelist request
     </div>
@@ -107,7 +108,8 @@
             <div class="row mb-3 align-items-center">
                 <label for="requestor" class="col-sm-3 col-form-label">Requestor</label>
                 <div class="col-sm-9">
-                    <input type="text" id="requestor" name="Requestor" class="form-control" disabled="disabled" value="@userInfo?.FullName"></div>
+                    <input type="text" id="requestor" name="Requestor" class="form-control" disabled="disabled" value="@User.Identity.Name">
+                </div>
              </div>
             <div class="row mb-3 align-items-center">
                 <label for="bauNo" class="col-sm-3 col-form-label">BAU No. / Part Number</label>
@@ -172,9 +174,9 @@
     </div>
     <div class="row"><div class="col-lg-12"><div class="row mb-3"><label for="reasonSubmission" class="col-sm-2 col-form-label pt-0">Reason of Submission</label><div class="col-sm-10"><textarea id="reasonSubmission" name="ReasonSubmission" class="form-control textarea-tall" required></textarea></div></div></div></div>
 
-    <div class="form-header mt-4">Approval</div>
-    <div class="row"><div class="col-md-4"><div class="mb-3"><label for="approverDropdown" class="form-label fw-bold">Approver</label><div class="input-group"><select id="approverDropdown" class="form-select" required></select><button type="button" id="addApproverBtn" class="btn btn-success" style="margin-left: 8px; border-radius:8px;">Add Approver</button></div></div></div></div>
-    <table id="approvalTable" class="table table-hover mt-3" style="width: 60%; display: none;"><thead class="table-light"><tr><th style="width: 40%;">Approver Name</th><th style="width: 40%;">Email</th><th style="width: 20%;">Action</th></tr></thead><tbody></tbody></table>
+    @* <div class="form-header mt-4">Approval</div> *@
+    @* <div class="row"><div class="col-md-4"><div class="mb-3"><label for="approverDropdown" class="form-label fw-bold">Approver</label><div class="input-group"><select id="approverDropdown" class="form-select" required></select><button type="button" id="addApproverBtn" class="btn btn-success" style="margin-left: 8px; border-radius:8px;">Add Approver</button></div></div></div></div> *@
+    @* <table id="approvalTable" class="table table-hover mt-3" style="width: 60%; display: none;"><thead class="table-light"><tr><th style="width: 40%;">Approver Name</th><th style="width: 40%;">Email</th><th style="width: 20%;">Action</th></tr></thead><tbody></tbody></table> *@
     <div class="d-flex justify-content-end mt-4"><button type="button" class="btn btn-primary" id="btnSubmit">Submit</button></div>
 </form>
 
@@ -204,13 +206,13 @@
                 clearButton: $('#endorsementFileClear')
             };
 
-            const approver = {
-                dropdown: $('#approverDropdown'),
-                addButton: $('#addApproverBtn'),
-                table: $('#approvalTable'),
-                tableBody: $('#approvalTable tbody')
-            };
-            let approvalList = [];
+            // const approver = {
+            //     dropdown: $('#approverDropdown'),
+            //     addButton: $('#addApproverBtn'),
+            //     table: $('#approvalTable'),
+            //     tableBody: $('#approvalTable tbody')
+            // };
+            // let approvalList = [];
 
 
             function setupFileInput(fileSet) {
@@ -248,25 +250,25 @@
                 manageState(endorsementFileInput, status === 'Transfer');
             }
 
-            function updateApprovalTable() {
-                approver.tableBody.empty();
-                if (approvalList.length > 0) {
-                    approver.table.show();
-                    const item = approvalList[0];
-                    approver.tableBody.append(`<tr><td>${item.ApproverName}</td><td>${item.ApproverEmail}</td><td><button type="button" class="btn btn-danger btn-sm" onclick="removeApproval(0)">Remove</button></td></tr>`);
-                    approver.dropdown.prop('disabled', true);
-                    approver.addButton.prop('disabled', true);
-                } else {
-                    approver.table.hide();
-                    approver.dropdown.prop('disabled', false).val(null).trigger('change');
-                    approver.addButton.prop('disabled', false);
-                }
-            }
+            // function updateApprovalTable() {
+            //     approver.tableBody.empty();
+            //     if (approvalList.length > 0) {
+            //         approver.table.show();
+            //         const item = approvalList[0];
+            //         approver.tableBody.append(`<tr><td>${item.ApproverName}</td><td>${item.ApproverEmail}</td><td><button type="button" class="btn btn-danger btn-sm" onclick="removeApproval(0)">Remove</button></td></tr>`);
+            //         approver.dropdown.prop('disabled', true);
+            //         approver.addButton.prop('disabled', true);
+            //     } else {
+            //         approver.table.hide();
+            //         approver.dropdown.prop('disabled', false).val(null).trigger('change');
+            //         approver.addButton.prop('disabled', false);
+            //     }
+            // }
 
-            window.removeApproval = function(index) {
-                approvalList.splice(index, 1);
-                updateApprovalTable();
-            };
+            // window.removeApproval = function(index) {
+            //     approvalList.splice(index, 1);
+            //     updateApprovalTable();
+            // };
 
 
             setupFileInput(assessmentFileInput);
@@ -280,33 +282,33 @@
             minimumResultsForSearch: Infinity
         });
 
-            approver.dropdown.select2({
-                theme: 'bootstrap-5', placeholder: '-- Search Approver --', allowClear: true, minimumInputLength: 3,
-                ajax: {
-                    url: '@Url.Action("SearchApprovers", "SourceList")', dataType: 'json', delay: 250,
-                    data: (params) => ({ term: params.term }),
-                    processResults: (data) => ({ results: data })
-                },
-                templateResult: (data) => {
-                    if (!data.id) return data.text;
-                    return $(`<div><strong>${data.text}</strong><br><small>${data.email || ''}</small></div>`);
-                },
-                templateSelection: (data) => data.text
-            });
+            // approver.dropdown.select2({
+            //     theme: 'bootstrap-5', placeholder: '-- Search Approver --', allowClear: true, minimumInputLength: 3,
+            //     ajax: {
+            //         url: '@Url.Action("SearchApprovers", "SourceList")', dataType: 'json', delay: 250,
+            //         data: (params) => ({ term: params.term }),
+            //         processResults: (data) => ({ results: data })
+            //     },
+            //     templateResult: (data) => {
+            //         if (!data.id) return data.text;
+            //         return $(`<div><strong>${data.text}</strong><br><small>${data.email || ''}</small></div>`);
+            //     },
+            //     templateSelection: (data) => data.text
+            // });
 
             supplierStatusSelect.on('change', toggleConditionalInputs);
             toggleConditionalInputs();
 
-            approver.addButton.on('click', function() {
-                if (approvalList.length > 0) return;
-                const selected = approver.dropdown.select2('data')[0];
-                if (!selected || !selected.id) {
-                    Swal.fire('Oops...', 'Please select an approver first!', 'warning');
-                    return;
-                }
-                approvalList.push({ ApproverName: selected.text, ApproverEmail: selected.email });
-                updateApprovalTable();
-            });
+            // approver.addButton.on('click', function() {
+            //     if (approvalList.length > 0) return;
+            //     const selected = approver.dropdown.select2('data')[0];
+            //     if (!selected || !selected.id) {
+            //         Swal.fire('Oops...', 'Please select an approver first!', 'warning');
+            //         return;
+            //     }
+            //     approvalList.push({ ApproverName: selected.text, ApproverEmail: selected.email });
+            //     updateApprovalTable();
+            // });
 
             form.find('[required]').on('input change', function() {
                 if ($(this).val() && $(this).val().trim() !== "") {
@@ -345,10 +347,10 @@
                     emptyFields.push('Supplier Endorsement List');
                     endorsementFileInput.display.addClass('input-error');
                 }
-                if (approvalList.length === 0) {
-                    emptyFields.push('Approver');
-                    approver.dropdown.next('.select2-container').find('.select2-selection').addClass('input-error');
-                }
+                // if (approvalList.length === 0) {
+                //     emptyFields.push('Approver');
+                //     approver.dropdown.next('.select2-container').find('.select2-selection').addClass('input-error');
+                // }
 
                 if (emptyFields.length > 0) {
                     Swal.fire({
@@ -369,10 +371,10 @@
                         $('#requestor').prop('disabled', true);
                         toggleConditionalInputs();
 
-                        if (approvalList.length > 0) {
-                            formData.append('ApproverName', approvalList[0].ApproverName);
-                            formData.append('ApproverEmail', approvalList[0].ApproverEmail);
-                        }
+                        // if (approvalList.length > 0) {
+                        //     formData.append('ApproverName', approvalList[0].ApproverName);
+                        //     formData.append('ApproverEmail', approvalList[0].ApproverEmail);
+                        // }
 
                         Swal.fire({ title: 'Submitting...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
