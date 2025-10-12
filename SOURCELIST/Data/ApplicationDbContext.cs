@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using sourcelist.Models; // Baris ini sekarang akan berfungsi dengan benar
+using sourcelist.Models; 
 
 namespace sourcelist.Data
 {
@@ -8,9 +8,9 @@ namespace sourcelist.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
         }
-        public DbSet<User> MUsers { get; set; }
-        public DbSet<Supplier> MSuppliers { get; set; }
-        public DbSet<Sourcelist> TSourcelists { get; set; }
-        public DbSet<SourcelistDetail> TSourcelistDetails { get; set; } 
+        public DbSet<User> Users { get; set; }
+        public DbSet<Supplier> Suppliers { get; set; }
+        public DbSet<Sourcelist> Sourcelists { get; set; }
+        public DbSet<SourcelistDetail> SourcelistDetail { get; set; } 
     }
 }

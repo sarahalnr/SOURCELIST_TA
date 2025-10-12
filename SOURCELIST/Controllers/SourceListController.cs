@@ -12,7 +12,7 @@ using sourcelist.Models;
 using sourcelist.Data;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace sourcelist.Controllers
 {
@@ -35,55 +35,81 @@ namespace sourcelist.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken] // Tambahkan ini untuk keamanan
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SourceListCreateViewModel model)
         {
-            // 1. PERIKSA APAKAH USER SUDAH LOGIN (CARA BARU YANG BENAR)
             if (!User.Identity.IsAuthenticated)
             {
                 return Unauthorized(new { success = false, message = "Sesi Anda telah berakhir. Silakan login kembali." });
             }
-
-            // 2. AMBIL DATA USER DARI CLAIMS ("KTP DIGITAL")
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var fullNameClaim = User.FindFirst(ClaimTypes.Name)?.Value;
             var emailClaim = User.FindFirst(ClaimTypes.Email)?.Value;
-
-            // Validasi jika karena suatu hal ID tidak ditemukan di dalam claims
             if (string.IsNullOrEmpty(userIdClaim))
             {
                 return StatusCode(500, new { success = false, message = "Informasi User ID tidak ditemukan di sesi login Anda." });
             }
-
-            // 3. ISI DATA REQUESTOR DARI CLAIMS KE VIEWMODEL
             model.Requestor = fullNameClaim;
             model.RequestorEmail = emailClaim;
             model.RequestorId = int.Parse(userIdClaim);
 
+            // Langkah validasi dan pengisian data 
             try
             {
-                // 4. CARI APPROVER DAN SUPPLIER DARI DATABASE
-                var approver = await _context.MUsers.FirstOrDefaultAsync(u => u.Role == "Approver");
+                var approver = await _context.Users.FirstOrDefaultAsync(u => u.Role == "Approver");
                 if (approver == null)
                 {
-                    return StatusCode(500, new { success = false, message = "Sistem error: Tidak ada user dengan role 'Approver' yang terdaftar." });
+                    return StatusCode(500, new { success = false, message = "Sistem error: Tidak ada user dengan role 'Approver'." });
                 }
                 model.ApproverId = approver.UserID;
+                model.ApproverName = approver.Username;
+                model.ApproverEmail = approver.Email;
 
-                var supplier = await _context.MSuppliers.FirstOrDefaultAsync(s => s.NamaSupplier == model.SupplierName);
-                if (supplier == null)
+                if (model.SupplierStatus == "New")
                 {
-                    return BadRequest(new { success = false, message = $"Supplier dengan nama '{model.SupplierName}' tidak ditemukan di data master." });
+                    if (string.IsNullOrWhiteSpace(model.SupplierName))
+                    {
+                        return BadRequest(new { success = false, message = "Nama Supplier wajib diisi untuk supplier baru." });
+                    }
+                    var existingSupplier = await _context.Suppliers.FirstOrDefaultAsync(s => s.NamaSupplier == model.SupplierName);
+
+                    if (existingSupplier == null)
+                    {
+                        var newSupplier = new Supplier
+                        {
+                            NamaSupplier = model.SupplierName,
+                            KodeVendor = model.VendorCode, 
+                            EmailSupplier = "not.set@email.com", 
+                            Status = "Aktif" 
+                        };
+                        _context.Suppliers.Add(newSupplier);
+                        await _context.SaveChangesAsync();
+
+         
+                        model.SupplierId = newSupplier.ID_Supplier;
+                    }
+                    else
+                    {
+                        
+                        model.SupplierId = existingSupplier.ID_Supplier;
+                    }
                 }
-                model.SupplierId = supplier.ID_Supplier;
+                else 
+                {
+                    var supplier = await _context.Suppliers.FindAsync(model.SupplierId);
+                    if (supplier == null)
+                    {
+                        return BadRequest(new { success = false, message = $"Supplier dengan ID '{model.SupplierId}' tidak ditemukan." });
+                    }
+                    model.SupplierName = supplier.NamaSupplier;
+                }
             }
             catch (Exception ex)
             {
-                // Error ini biasanya terjadi jika ada masalah koneksi ke database
-                return StatusCode(500, new { success = false, message = "Gagal terhubung ke database: " + ex.Message });
+                return StatusCode(500, new { success = false, message = "Gagal mengambil atau menyimpan data master: " + ex.Message });
             }
 
-            // 5. LAKUKAN VALIDASI FORM LAINNYA
+            // Validasi file attachment (sudah benar)
             if (model.SupplierStatus == "New" && model.AssessmentAttachmentFile == null)
             {
                 ModelState.AddModelError("AssessmentAttachmentFile", "Supplier Assesment Form wajib diisi untuk supplier baru.");
@@ -93,35 +119,32 @@ namespace sourcelist.Controllers
                 ModelState.AddModelError("AttachedEndorsementFile", "Supplier Endorsement List wajib diisi untuk supplier transfer.");
             }
 
+            // Cek ModelState SETELAH semua data model terisi (sudah benar)
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
                 return BadRequest(new { success = false, message = "Data tidak valid: " + string.Join(", ", errors) });
             }
 
-            // 6. JIKA SEMUA VALID, PROSES FILE DAN PANGGIL SERVICE
+            // Proses penyimpanan ke service (sudah benar)
             try
             {
                 string assessmentFileName = (model.AssessmentAttachmentFile != null) ? Path.GetFileName(model.AssessmentAttachmentFile.FileName) : null;
                 string endorsementFileName = (model.AttachedEndorsementFile != null) ? Path.GetFileName(model.AttachedEndorsementFile.FileName) : null;
 
-                // Panggil service untuk menyimpan data ke database
                 string newSourceListId = await _sourceListService.CreateNewSourceListAsync(model, assessmentFileName, endorsementFileName);
 
-                // Jika ID tidak kembali, berarti ada error di SP
                 if (string.IsNullOrEmpty(newSourceListId))
                 {
-                    return StatusCode(500, new { success = false, message = "Gagal membuat data di database. Stored Procedure tidak mengembalikan ID baru." });
+                    return StatusCode(500, new { success = false, message = "Gagal membuat data. Stored Procedure tidak mengembalikan ID baru." });
                 }
 
-                // Buat folder final berdasarkan ID baru
                 string finalFolder = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", newSourceListId);
                 if (!Directory.Exists(finalFolder))
                 {
                     Directory.CreateDirectory(finalFolder);
                 }
 
-                // Pindahkan file dari temp ke folder final
                 if (model.AssessmentAttachmentFile != null)
                 {
                     string finalFilePath = Path.Combine(finalFolder, assessmentFileName);
@@ -143,8 +166,7 @@ namespace sourcelist.Controllers
             }
             catch (Exception ex)
             {
-                // Menangkap error dari Service atau Stored Procedure
-                return StatusCode(500, new { success = false, message = "Terjadi kesalahan saat menyimpan data: " + ex.InnerException?.Message ?? ex.Message });
+                return StatusCode(500, new { success = false, message = "Terjadi kesalahan saat menyimpan data: " + (ex.InnerException?.Message ?? ex.Message) });
             }
         }
 
@@ -372,6 +394,46 @@ namespace sourcelist.Controllers
             }
 
             return View(result);
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetSuppliers(string term) // <-- UBAH DI SINI
+        {
+            try
+            {
+                var query = _context.Suppliers.Where(s => s.Status == "Aktif");
+
+                if (!string.IsNullOrEmpty(term))
+                {
+                    query = query.Where(s => s.NamaSupplier.Contains(term));
+                }
+
+                var suppliers = await query
+                    .Select(s => new {
+                        id = s.ID_Supplier,
+                        text = s.NamaSupplier
+                    })
+                    .ToListAsync();
+
+                return Json(suppliers);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in GetSuppliers: {ex.Message}");
+                return StatusCode(500, new { message = "An internal server error occurred." });
+            }
+        }
+
+        [HttpGet]
+        public async Task<JsonResult> GetSupplierDetail(int id)
+        {
+            var supplier = await _context.Suppliers.FindAsync(id); // <-- Pastikan ini 'Suppliers'
+            if (supplier == null)
+            {
+                return Json(null);
+            }
+            return Json(new { kodeVendor = supplier.KodeVendor });
         }
         //[HttpGet]
         //public JsonResult SearchApprovers(string term)
