@@ -278,8 +278,13 @@
                                 Swal.fire('Approved!', response.message, 'success')
                                     .then(() => window.location.href = '@ViewData["ReturnUrl"]');
                             },
-                            error: function() {
-                                Swal.fire('Error!', 'An unknown error occurred.', 'error');
+                            error: function(xhr) {
+                                if (xhr.status === 401) {
+                                    Swal.fire('Session Expired', 'Your session has ended. Please log in again.', 'warning')
+                                        .then(() => window.location.href = '@Url.Action("Login", "Account")');
+                                } else {
+                                    Swal.fire('Error!', 'An unknown error occurred.', 'error');
+                                }
                             }
                         });
                     }

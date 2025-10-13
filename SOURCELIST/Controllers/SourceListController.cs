@@ -109,7 +109,7 @@ namespace sourcelist.Controllers
                 return StatusCode(500, new { success = false, message = "Gagal mengambil atau menyimpan data master: " + ex.Message });
             }
 
-            // Validasi file attachment (sudah benar)
+            // Validasi file attachment
             if (model.SupplierStatus == "New" && model.AssessmentAttachmentFile == null)
             {
                 ModelState.AddModelError("AssessmentAttachmentFile", "Supplier Assesment Form wajib diisi untuk supplier baru.");
@@ -119,14 +119,14 @@ namespace sourcelist.Controllers
                 ModelState.AddModelError("AttachedEndorsementFile", "Supplier Endorsement List wajib diisi untuk supplier transfer.");
             }
 
-            // Cek ModelState SETELAH semua data model terisi (sudah benar)
+            // Cek ModelState SETELAH semua data model terisi
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
                 return BadRequest(new { success = false, message = "Data tidak valid: " + string.Join(", ", errors) });
             }
 
-            // Proses penyimpanan ke service (sudah benar)
+            // Proses penyimpanan ke service 
             try
             {
                 string assessmentFileName = (model.AssessmentAttachmentFile != null) ? Path.GetFileName(model.AssessmentAttachmentFile.FileName) : null;
@@ -255,18 +255,22 @@ namespace sourcelist.Controllers
         [HttpGet]
         public async Task<IActionResult> Detail(string id, string source, int page = 1)
         {
+            if (!User.Identity.IsAuthenticated)
+            {
+                
+                TempData["SweetAlertMessage"] = "Session not found. Please log in.";
+                TempData["SweetAlertType"] = "error";
+                return RedirectToAction("Login", "Account");
+            }
+
             if (string.IsNullOrEmpty(id))
             {
                 return BadRequest("Source List Number is required.");
             }
-
-            var currentUser = HttpContext.Session.GetObjectFromJson<sourcelist.Models.UserInfo>("UserInfo");
-            if (currentUser == null)
+            var emailClaim = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(emailClaim))
             {
-                TempData["SweetAlertMessage"] = "Session not found. You are redirecting to Home.";
-                TempData["SweetAlertType"] = "error";
-                TempData["SweetAlertRedirect"] = Url.Action("Index", "Home");
-                return RedirectToAction("Index", "Home");
+                return StatusCode(500, "User email information not found in your session.");
             }
 
             var viewModel = await _sourceListService.GetSourceListDetailAsync(id);
@@ -281,7 +285,9 @@ namespace sourcelist.Controllers
                                      "AllSourceList".Equals(source, StringComparison.OrdinalIgnoreCase);
 
             bool isPending = "PENDING".Equals(viewModel.ApproverStatus, StringComparison.OrdinalIgnoreCase);
-            bool isCurrentUserTheApprover = currentUser.Email.Equals(viewModel.ApproverEmail, StringComparison.OrdinalIgnoreCase);
+
+          
+            bool isCurrentUserTheApprover = emailClaim.Equals(viewModel.ApproverEmail, StringComparison.OrdinalIgnoreCase);
 
             ViewBag.ShowApprovalButtons = isFromAllowedPage && isPending && isCurrentUserTheApprover;
 

@@ -229,7 +229,7 @@ namespace sourcelist.Services
                                 BAUNumber = reader["BAUNumber"].ToString(),
                                 PartDescription = reader["PartDescription"].ToString(),
                                 SupplierName = reader["SupplierName"].ToString(),
-                                VendorCode = reader["VendorCode"].ToString(),
+                                VendorCode = reader["KodeVendor"].ToString(),
                                 SupplierStatus = reader["SupplierStatus"].ToString(),
                                 SourceListStatus = reader["SourceListStatus"].ToString(),
                                 CMSFinalCRB = reader["CMSFinalCRB"].ToString(),
