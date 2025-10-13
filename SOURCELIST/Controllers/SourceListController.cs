@@ -170,7 +170,6 @@ namespace sourcelist.Controllers
             }
         }
 
-        [HttpGet]
         public async Task<IActionResult> IndexMySourceList(
           int page = 1,
           int pageSize = 10,
@@ -179,18 +178,24 @@ namespace sourcelist.Controllers
           string searchTerm = null,
           bool isAjax = false)
         {
-
-            var UserInfo = HttpContext.Session.GetObjectFromJson<sourcelist.Models.UserInfo>("UserInfo");
-            if (UserInfo == null)
+            // untuk cek login
+            if (!User.Identity.IsAuthenticated)
             {
-                TempData["SweetAlertMessage"] = "Session not found. You are redirecting to Home.";
-                TempData["SweetAlertType"] = "error";
-                TempData["SweetAlertRedirect"] = Url.Action("Index", "Home");
-                return RedirectToAction("Index", "Home");
+                if (isAjax)
+                {
+                    return Unauthorized(new { message = "Sesi Anda telah berakhir. Silakan login kembali." });
+                }
+                return RedirectToAction("Login", "Account"); 
             }
 
-            string email = UserInfo.Email;
-            var result = await _sourceListService.GetSourceListsByEmailPagedAsync(email, page, pageSize, sortColumn, sortDirection, searchTerm);
+            var emailClaim = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(emailClaim))
+            {
+                return StatusCode(500, "Informasi email tidak ditemukan di sesi login Anda.");
+            }
+
+            var result = await _sourceListService.GetSourceListsByEmailPagedAsync(emailClaim, page, pageSize, sortColumn, sortDirection, searchTerm);
+
             ViewBag.Page = page;
             ViewBag.PageSize = pageSize;
             ViewBag.TotalRows = result.TotalRows;
@@ -200,7 +205,6 @@ namespace sourcelist.Controllers
 
             if (isAjax)
             {
-
                 return PartialView("_MySourceListTable", result);
             }
 

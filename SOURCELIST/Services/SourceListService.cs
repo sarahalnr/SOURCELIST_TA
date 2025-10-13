@@ -139,7 +139,7 @@ namespace sourcelist.Services
                                 VendorCode = reader["VendorCode"].ToString(),
                                 ReasonSubmission = reader["ReasonSubmission"].ToString(),
                                 SourceListStatus = reader["SourceListStatus"].ToString(),
-                                ApproverStatus = reader["ApproverStatus"]?.ToString()
+                                ApproverStatus = reader["ApprovalStatus"]?.ToString()
                             });
                         }
                     }
@@ -192,7 +192,7 @@ namespace sourcelist.Services
                                 VendorCode = reader["VendorCode"].ToString(),
                                 ReasonSubmission = reader["ReasonSubmission"].ToString(),
                                 SourceListStatus = reader["SourceListStatus"].ToString(),
-                                ApproverStatus = reader["ApproverStatus"]?.ToString()
+                                ApproverStatus = reader["ApprovalStatus"]?.ToString()
                             });
                         }
                     }
@@ -234,7 +234,7 @@ namespace sourcelist.Services
                                 SourceListStatus = reader["SourceListStatus"].ToString(),
                                 CMSFinalCRB = reader["CMSFinalCRB"].ToString(),
                                 ReasonSubmission = reader["ReasonSubmission"].ToString(),
-                                ApproverStatus = reader["ApproverStatus"]?.ToString(),
+                                ApproverStatus = reader["ApprovalStatus"]?.ToString(),
                                 ApproverName = reader["ApproverName"].ToString(),
                                 ApproverEmail = reader["ApproverEmail"].ToString(),
                                 AttachmentFileName = reader["AttachmentFileName"]?.ToString(), 
@@ -321,7 +321,7 @@ namespace sourcelist.Services
                                 VendorCode = reader["VendorCode"].ToString(),
                                 ReasonSubmission = reader["ReasonSubmission"].ToString(),
                                 SourceListStatus = reader["SourceListStatus"].ToString(),
-                                ApproverStatus = reader["ApproverStatus"]?.ToString()
+                                ApproverStatus = reader["ApprovalStatus"]?.ToString()
                             });
                         }
                     }
