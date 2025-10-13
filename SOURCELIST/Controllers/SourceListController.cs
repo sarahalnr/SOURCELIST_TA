@@ -213,42 +213,45 @@ namespace sourcelist.Controllers
 
         [HttpGet]
         public async Task<IActionResult> IndexForApprove(
-           int page = 1,
-           int pageSize = 10,
-           string sortColumn = "SubmitDate",
-           string sortDirection = "DESC",
-           string searchTerm = null,
-           bool isAjax = false)
+    int page = 1,
+    int pageSize = 10,
+    string sortColumn = "SubmitDate",
+    string sortDirection = "DESC",
+    string searchTerm = null,
+    bool isAjax = false)
         {
-
-            var UserInfo = HttpContext.Session.GetObjectFromJson<sourcelist.Models.UserInfo>("UserInfo");
-            if (UserInfo == null)
+            if (!User.Identity.IsAuthenticated)
             {
-                TempData["SweetAlertMessage"] = "Session not found. You are redirecting to Home.";
-                TempData["SweetAlertType"] = "error";
-                TempData["SweetAlertRedirect"] = Url.Action("Index", "Home");
-                return RedirectToAction("Index", "Home");
+                if (isAjax)
+                {
+                    return Unauthorized(new { message = "Sesi Anda telah berakhir. Silakan login kembali." });
+                }
+                return RedirectToAction("Login", "Account");
+            }
+            var emailClaim = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(emailClaim))
+            {
+                return StatusCode(500, "Informasi email tidak ditemukan di sesi login Anda.");
             }
 
-            string email = UserInfo.Email;
-            var result = await _sourceListService.GetSourceListsForApprovalPagedAsync(email, page, pageSize, sortColumn, sortDirection, searchTerm);
+            var result = await _sourceListService.GetSourceListsForApprovalPagedAsync(emailClaim, page, pageSize, sortColumn, sortDirection, searchTerm);
+
             ViewBag.Page = page;
             ViewBag.PageSize = pageSize;
             ViewBag.TotalRows = result.TotalRows;
             ViewBag.SortColumn = sortColumn;
             ViewBag.SortDirection = sortDirection;
             ViewBag.SearchTerm = searchTerm;
-
             ViewData["Source"] = "Approve";
 
             if (isAjax)
             {
-
                 return PartialView("_MySourceListTable", result);
             }
 
             return View(result);
         }
+
         [HttpGet]
         public async Task<IActionResult> Detail(string id, string source, int page = 1)
         {
