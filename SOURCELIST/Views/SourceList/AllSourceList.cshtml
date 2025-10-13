@@ -18,7 +18,7 @@
 
     <form id="searchForm" class="mb-3" autocomplete="off">
         <div class="input-group">
-            <input type="text" id="searchBox" class="form-control" placeholder="Search... " name="searchTerm" value="@searchTerm" autocomplete="off">
+            <input type="text" id="searchBox" class="form-control" placeholder="Search by Requestor and Date ... " name="searchTerm" value="@searchTerm" autocomplete="off">
         </div>
     </form>
 
@@ -34,19 +34,38 @@
         const doneTypingInterval = 500;
 
 
-        function loadSourceList(page = 1) {
-            let searchTerm = $('#searchBox').val();
-            $('#sourceListTableContainer').html('<p class="text-center">Loading...</p>');
+       function loadSourceList(page = 1) {
+    let searchTerm = $('#searchBox').val();
+    $('#sourceListTableContainer').html('<p class="text-center">Loading...</p>');
 
-            $.get('@Url.Action("AllSourceList")', {
-                page: page,
-                searchTerm: searchTerm,
-                isAjax: true
-            }, function (data) {
-                $('#sourceListTableContainer').html(data);
-            });
+    $.ajax({ 
+        url: '@Url.Action("AllSourceList")',
+        type: 'GET',
+        data: {
+            page: page,
+            searchTerm: searchTerm,
+            isAjax: true
+        },
+        success: function (data) {
+            $('#sourceListTableContainer').html(data);
+        },
+        error: function (xhr, status, error) {
+      
+            if (xhr.status === 401) {
+                Swal.fire({
+                    title: 'Oops!',
+                    text: 'Sesi Anda telah berakhir. Anda akan diarahkan ke halaman Home.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    window.location.href = '@Url.Action("Index", "Home")';
+                });
+            } else {
+                $('#sourceListTableContainer').html('<p class="text-center text-danger">Gagal memuat data.</p>');
+            }
         }
-
+    });
+}
         $('#searchBox').on('keyup', function () {
             clearTimeout(typingTimer);
             typingTimer = setTimeout(function () {
