@@ -190,20 +190,35 @@
             <div class="section-header mt-4">
                 <span>Approval Information</span>
             </div>
-            <div class="data-block">
-                <div class="data-row"><label>Approver Name</label><div class="value">@Model.ApproverName</div></div>
-                <div class="data-row"><label>Approver Email</label><div class="value">@Model.ApproverEmail</div></div>
-                @if (approverStatus == "COMPLETED")
-                {
-                    <div class="data-row">
-                        <label>Validity Period</label>
-                        <div class="value">@Model.ValidityPeriod</div> 
-                    </div>
-                }
+    <div class="data-block">
+        <div class="data-row"><label>Approver Name</label><div class="value">@Model.ApproverName</div></div>
+        <div class="data-row"><label>Approver Email</label><div class="value">@Model.ApproverEmail</div></div>
+
+  
+        @if (approverStatus == "COMPLETED")
+        {
+            <div class="data-row">
+                <label>Validity Period</label>
+                <div class="value">@Model.ValidityPeriod</div>
             </div>
+        }
+
+      
+        @if (!string.IsNullOrEmpty(Model.Remarks))
+        {
+            <div class="data-row">
+                <label>Remarks</label>
+                <div class="value">@Model.Remarks</div>
+            </div>
+        }
+    </div>
  
  @if (ViewBag.ShowApprovalButtons as bool? == true)
     {
+        <div class="data-row">
+            <label for="remarks">Remarks (Optional):</label>
+            <textarea id="remarks" class="form-control value" style="background-color:white;" rows="3"></textarea>
+        </div>
         <div class="data-block">
             <div class="data-row">
             <label for="validityPeriod">Validity period:</label>
@@ -214,6 +229,7 @@
                 <option value="Permanent">Permanent</option>
             </select>
         </div>
+            
     </div>
     }
         
@@ -249,78 +265,92 @@
             }
         });
             // UNTUK TOMBOL APPROVE
-            $('#btnApprove').on('click', function () {
-                const validityPeriod = $('#validityPeriod').val();
-                if (!validityPeriod) {
-                    Swal.fire('Validation Error', 'Please select a validity period!', 'error');
-                    return; 
-                }
+        $('#btnApprove').on('click', function () {
+            const validityPeriod = $('#validityPeriod').val();
 
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "You are about to approve this request.",
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, Approve!',
-                    confirmButtonColor: '#28a745',
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        const dataToSend = {
-                            SourceListNumber: '@Model.SourceListNumber',
-                            ValidityPeriod: validityPeriod
-                        };
-                        $.ajax({
-                            url: '@Url.Action("Approve", "SourceList")',
-                            type: 'POST',
-                            contentType: 'application/json',
-                            data: JSON.stringify(dataToSend),
-                            success: function(response) {
-                                Swal.fire('Approved!', response.message, 'success')
-                                    .then(() => window.location.href = '@ViewData["ReturnUrl"]');
-                            },
-                            error: function(xhr) {
-                                if (xhr.status === 401) {
-                                    Swal.fire('Session Expired', 'Your session has ended. Please log in again.', 'warning')
-                                        .then(() => window.location.href = '@Url.Action("Login", "Account")');
-                                } else {
-                                    Swal.fire('Error!', 'An unknown error occurred.', 'error');
-                                }
+            // Validasi: Pastikan Validity Period sudah dipilih
+            if (!validityPeriod) {
+                Swal.fire('Validation Error', 'Please select a validity period!', 'error');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You are about to approve this request.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Approve!',
+                confirmButtonColor: '#28a745',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const remarks = $('#remarks').val();
+
+                    const dataToSend = {
+                        SourceListNumber: '@Model.SourceListNumber',
+                        ValidityPeriod: validityPeriod,
+                        Remarks: remarks
+                    };
+
+                    $.ajax({
+                        url: '@Url.Action("Approve", "SourceList")',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(dataToSend),
+                        success: function(response) {
+                            Swal.fire('Approved!', response.message, 'success')
+                                .then(() => window.location.href = '@ViewData["ReturnUrl"]');
+                        },
+                        error: function(xhr) {
+                            if (xhr.status === 401) {
+                                Swal.fire('Session Expired', 'Your session has ended. Please log in again.', 'warning')
+                                    .then(() => window.location.href = '@Url.Action("Login", "Account")');
+                            } else {
+                                Swal.fire('Error!', 'An unknown error occurred.', 'error');
                             }
-                        });
-                    }
-                });
+                        }
+                    });
+                }
             });
+        });
 
             // UNTUK TOMBOL REJECT
-            $('#btnReject').on('click', function() {
-                Swal.fire({
+        $('#btnReject').on('click', function() {
+            Swal.fire({
                     title: 'Are you sure?',
                     text: "You are about to reject this request.",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Yes, Reject!',
                     confirmButtonColor: '#d33',
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        const dataToSend = {
-                            SourceListNumber: '@Model.SourceListNumber'
-                        };
-                        $.ajax({
-                            url: '@Url.Action("Reject", "SourceList")',
-                            type: 'POST',
-                            contentType: 'application/json',
-                            data: JSON.stringify(dataToSend),
-                            success: function(response) {
-                                Swal.fire('Rejected!', response.message, 'success')
-                                    .then(() => window.location.href = '@ViewData["ReturnUrl"]');
-                            },
-                            error: function() {
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const remarks = $('#remarks').val(); 
+
+                    const dataToSend = {
+                        SourceListNumber: '@Model.SourceListNumber',
+                        Remarks: remarks 
+                    };
+                    $.ajax({
+                        url: '@Url.Action("Reject", "SourceList")',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(dataToSend),
+                        success: function(response) {
+                            Swal.fire('Rejected!', response.message, 'success')
+                                .then(() => window.location.href = '@ViewData["ReturnUrl"]');
+                        },
+                        error: function(xhr) { 
+                            if (xhr.status === 401) {
+                                Swal.fire('Session Expired', 'Your session has ended.', 'warning')
+                                    .then(() => window.location.href = '@Url.Action("Login", "Account")');
+                            } else {
                                 Swal.fire('Error!', 'An unknown error occurred.', 'error');
                             }
-                        });
-                    }
-                });
+                        }
+                    });
+                }
             });
+        });
 
             // UNTUK TOMBOL COPY LINK
             $('#btnCopyLink').on('click', function() {

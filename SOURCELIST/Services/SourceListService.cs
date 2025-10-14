@@ -260,7 +260,8 @@ namespace sourcelist.Services
                     command.CommandType = CommandType.StoredProcedure;
                     command.Parameters.AddWithValue("@SourceListNumber", model.SourceListNumber);
                     command.Parameters.AddWithValue("@ValidityPeriod", model.ValidityPeriod);
-                    //command.Parameters.AddWithValue("@Remark", (object)model.Remark ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@Remarks",
+                        string.IsNullOrEmpty(model.Remarks) ? DBNull.Value : (object)model.Remarks);
                     await connection.OpenAsync();
                     await command.ExecuteNonQueryAsync();
                 }
@@ -276,7 +277,8 @@ namespace sourcelist.Services
                 {
                     command.CommandType = CommandType.StoredProcedure;
                     command.Parameters.AddWithValue("@SourceListNumber", model.SourceListNumber);
-                    //command.Parameters.AddWithValue("@Remark", model.Remark);
+                    command.Parameters.AddWithValue("@Remarks",
+                        string.IsNullOrEmpty(model.Remarks) ? DBNull.Value : (object)model.Remarks);
                     await connection.OpenAsync();
                     await command.ExecuteNonQueryAsync();
                 }

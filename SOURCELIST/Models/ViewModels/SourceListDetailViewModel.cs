@@ -22,5 +22,6 @@ namespace sourcelist.Models.ViewModels
         public string AttachmentFileName { get; set; }
         public string AttachedEndorsement { get; set; }
         public string ValidityPeriod { get; set; }
+        public string Remarks { get; set; }
     }
 }
