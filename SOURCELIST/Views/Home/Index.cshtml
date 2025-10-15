@@ -1,9 +1,116 @@
 ﻿@{
-    var userInfo = ViewBag.UserInfo as sourcelist.Models.UserInfo;
+    ViewData["Title"] = "Home Page";
+    var userName = User.Identity.Name ?? "Guest";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome @User.Identity.Name</h1>
-    <br />
-</div>
+@section Head {
+    <style>
+        .dashboard-container {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
 
+        .welcome-banner {
+            background-color: #a3d65c;
+            color: white;
+            border-radius: 15px;
+            padding: 0 2.5rem;
+            display: flex;
+            align-items: center; /
+            margin-bottom: 2.5rem;
+            position: relative;             
+            height: 180px; /* Atur tinggi kartu */
+            overflow: visible; /* Izinkan gambar keluar dari kartu */
+        }
+
+            .welcome-banner .text-content h1 {
+                font-size: 2.5rem;
+                font-weight: 700;
+                color: white;
+                margin: 0;
+            }
+
+            .welcome-banner .text-content p {
+                font-size: 1.1rem;
+                color: white;
+                margin-top: 0.5rem;
+                opacity: 0.9;
+            }
+
+            .welcome-banner .illustration {
+                position: absolute;
+                right: 40px; 
+                bottom: -48px; 
+            }
+
+                .welcome-banner .illustration img {
+                    max-width: 270px; /* Perbesar gambar */
+                    height: auto;
+                }
+
+        @@media (max-width: 768px) {
+            .welcome-banner {
+                height: auto;
+                flex-direction: column;
+                text-align: center;
+                padding: 2rem 1.5rem;
+            }
+
+                .welcome-banner .illustration {
+                    position: static;
+                    margin-top: 1.5rem;
+                    bottom: auto;
+                    right: auto;
+                }
+
+                    .welcome-banner .illustration img {
+                        max-width: 180px;
+                    }
+        }
+    </style>
+}
+
+<div class="dashboard-container">
+    <div class="welcome-banner">
+        <div class="text-content">
+            <h1>Hi, @userName!</h1>
+            <p>Ready to start your day?</p>
+        </div>
+        <div class="illustration">
+            <img src="https://cdni.iconscout.com/illustration/premium/thumb/woman-working-on-laptop-5692639-4759504.png" alt="Illustration of a person working">
+        </div>
+    </div>
+</div>
+@* 
+    <div class="stats-overview">
+        <h2>Overview</h2>
+        <div class="row">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-card card-yellow">
+                    <div class="stat-value">83%</div>
+                    <div class="stat-label">Open Rate</div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-card card-purple">
+                    <div class="stat-value">77%</div>
+                    <div class="stat-label">Complete</div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-card card-pink">
+                    <div class="stat-value">91</div>
+                    <div class="stat-label">Unique Views</div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-card card-lavender">
+                    <div class="stat-value">126</div>
+                    <div class="stat-label">Total Views</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> *@
