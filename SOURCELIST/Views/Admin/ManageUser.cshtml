@@ -141,7 +141,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form asp-action="CreateUser" asp-controller="Admin" method="post">
+                <form id="createForm" asp-action="CreateUser" asp-controller="Admin" method="post">
                     <div class="mb-3">
                         <label for="username" class="form-label">Username</label>
                         <input type="text" class="form-control" id="username" name="Username" required>
@@ -181,7 +181,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form asp-action="EditUser" asp-controller="Admin" method="post">
+                <form id="editForm" asp-action="EditUser" asp-controller="Admin" method="post">
                     <input type="hidden" id="edit-id" name="ID_User" />
                     <div class="mb-3">
                         <label for="edit-username" class="form-label">Username</label>
@@ -222,40 +222,79 @@
 
 @section Scripts {
     <script>
-        // Script ini akan berjalan saat halaman dimuat
         document.addEventListener('DOMContentLoaded', function () {
+
             var editUserModal = document.getElementById('editUserModal');
-
-            // Event listener ini akan berjalan TEPAT SEBELUM modal edit ditampilkan
             editUserModal.addEventListener('show.bs.modal', function (event) {
-                // Tombol yang di-klik untuk memicu modal
                 var button = event.relatedTarget;
-
-                // Ambil data dari atribut 'data-*' di tombol yang diklik
                 var id = button.getAttribute('data-id');
                 var username = button.getAttribute('data-username');
                 var email = button.getAttribute('data-email');
                 var role = button.getAttribute('data-role');
                 var status = button.getAttribute('data-status');
 
-                // Cari elemen form di dalam modal
                 var idInput = editUserModal.querySelector('#edit-id');
                 var usernameInput = editUserModal.querySelector('#edit-username');
                 var emailInput = editUserModal.querySelector('#edit-email');
                 var roleInput = editUserModal.querySelector('#edit-role');
                 var statusInput = editUserModal.querySelector('#edit-status');
-
-                // Reset password field
                 var passwordInput = editUserModal.querySelector('#edit-password');
-                passwordInput.value = "";
 
-                // Isi nilai-nilai form dengan data dari tombol
+                passwordInput.value = "";
                 idInput.value = id;
                 usernameInput.value = username;
                 emailInput.value = email;
                 roleInput.value = role;
                 statusInput.value = status;
             });
+
+            const createForm = document.getElementById('createForm');
+            const editForm = document.getElementById('editForm');
+
+            // event listener untuk form CREATE
+            if (createForm) {
+                createForm.addEventListener('submit', function (event) {
+                    event.preventDefault();
+
+                    // pop-up konfirmasi
+                    Swal.fire({
+                        title: 'Confirm User Creation',
+                        text: "Are you sure you want to create this new user?",
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#28a745', // Warna hijau
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes!',
+                        cancelButtonText: 'Cancel'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.submit();
+                        }
+                    });
+                });
+            }
+
+            //  event listener untuk form EDIT
+            if (editForm) {
+                editForm.addEventListener('submit', function (event) {
+         
+                    event.preventDefault();
+                    Swal.fire({
+                        title: 'Confirm Changes',
+                        text: "Are you sure you want to save these changes?",
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#007bff', // Warna biru
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes!',
+                        cancelButtonText: 'Cancel'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.submit();
+                        }
+                    });
+                });
+            }
         });
     </script>
 }
