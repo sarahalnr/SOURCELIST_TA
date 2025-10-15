@@ -65,7 +65,7 @@ public class AccountController : Controller
 
                 //TempData["LoginStatus"] = "Success";
                 TempData["SweetAlertType"] = "success";
-                TempData["SweetAlertMessage"] = "Login Berhasil!";
+                TempData["SweetAlertMessage"] = "Login Success!";
                 return RedirectToAction("Index", "Home");
             }
             else

@@ -1,64 +1,80 @@
 ﻿@model sourcelist.Services.PagedResult<sourcelist.DTOs.UserDTO>
 
 @{
-
     ViewData["Title"] = "Manage User";
     int page = ViewBag.Page ?? 1;
     int pageSize = ViewBag.PageSize ?? 10;
+    string searchTerm = ViewBag.SearchTerm as string ?? "";
     int totalRows = ViewBag.TotalRows ?? 0;
-    int totalPages = (int)Math.Ceiling((double)totalRows / pageSize);
+    int totalPages = totalRows > 0 ? (int)Math.Ceiling((double)totalRows / pageSize) : 1;
     int startRow = (page - 1) * pageSize + 1;
     int endRow = startRow + Model.Data.Count() - 1;
 
+    // Logika untuk menampilkan tombol halaman
     int maxPagesToShow = 5;
     int startPage = Math.Max(1, page - maxPagesToShow / 2);
     int endPage = Math.Min(totalPages, startPage + maxPagesToShow - 1);
     startPage = Math.Max(1, endPage - maxPagesToShow + 1);
 }
+@section Head {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<style>
+        .tableheader th {
+            background-color: #a3d65c;
+            color: white;
+            border-color: #8dbb4c; 
+        }
+</style>
+}
 
 <div class="container-fluid">
-    <h3 class="mb-4">Manage User</h3>
+    <h3 class="mb-4">Daftar Pengguna user</h3>
 
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Daftar Pengguna Sistem</h6>
-        </div>
         <div class="card-body">
 
-            <button type="button" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#createUserModal">
-                Create User
-            </button>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <form asp-action="ManageUser" asp-controller="Admin" method="get">
+                        <div class="input-group">
+                            <input type="text" name="searchTerm" class="form-control" placeholder="Search by Username or Email..." value="@searchTerm">
+                            <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search"></i> Cari</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-6 text-md-end mt-2 mt-md-0">
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                        <i class="bi bi-plus-circle"></i> Create User
+                    </button>
+                </div>
+            </div>
 
             <div class="table-responsive">
-                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
-
-                
-                    <thead class="table-light">
+                <table class="table table-bordered table-hover " width="100%" cellspacing="0">
+                    <thead class="tableheader">
                         <tr>
                             <th>Username</th>
                             <th>Email</th>
-                            <th>Password</th>
                             <th>Role</th>
                             <th>Status</th>
-                            <th>Action</th>
+                            <th class="text-center">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         @if (Model.Data != null && Model.Data.Any())
                         {
-                    
                             foreach (var user in Model.Data)
                             {
                                 <tr>
                                     <td>@user.Username</td>
                                     <td>@user.Email</td>
-                                    <td>********</td>
                                     <td>@user.Role</td>
                                     <td>
                                         <span class="badge @(user.Status == "Aktif" ? "bg-success" : "bg-danger")">@user.Status</span>
                                     </td>
-                                    <td>
-                                        @* Tombol Edit untuk memicu pop-up "Edit User" *@
+                                    <td class="text-center">
                                         <button type="button" class="btn btn-warning btn-sm btn-edit"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#editUserModal"
@@ -67,7 +83,7 @@
                                                 data-email="@user.Email"
                                                 data-role="@user.Role"
                                                 data-status="@user.Status">
-                                            Edit
+                                            <i class="bi bi-pencil-square"></i> Edit
                                         </button>
                                     </td>
                                 </tr>
@@ -76,27 +92,46 @@
                         else
                         {
                             <tr>
-                                <td colspan="6" class="text-center">Tidak ada data user.</td>
+                                <td colspan="5" class="text-center">Tidak ada data user ditemukan.</td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
 
-        
-            @if (totalPages > 1)
-            {
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-end">
-                       @*kodenya blm lengkap*@
-                    </ul>
-                </nav>
-            }
-        </div>
-    </div>
-</div>
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    @if (totalRows > 0)
+                    {
+                        <p class="text-muted">Showing @startRow to @endRow of @totalRows entries</p>
+                    }
+                </div>
+                <div class="col-md-6">
+                    @if (totalPages > 1)
+                    {
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-end">
+                                <li class="page-item @(page == 1 ? "disabled" : "")">
+                                    <a class="page-link" asp-action="ManageUser" asp-route-page="@(page - 1)" asp-route-searchTerm="@searchTerm">Previous</a>
+                                </li>
 
-@* MODAL (POP-UP) UNTUK CREATE & EDIT *@
+                                @for (int i = startPage; i <= endPage; i++)
+                                {
+                                    <li class="page-item @(i == page ? "active" : "")">
+                                        <a class="page-link" asp-action="ManageUser" asp-route-page="@i" asp-route-searchTerm="@searchTerm">@i</a>
+                                    </li>
+                                }
+
+                                <li class="page-item @(page == totalPages ? "disabled" : "")">
+                                    <a class="page-link" asp-action="ManageUser" asp-route-page="@(page + 1)" asp-route-searchTerm="@searchTerm">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    }
+                </div>
+            </div>
+        </div>
+</div>
 
 <div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -106,7 +141,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form asp-action="CreateUser" asp-controller="Admin">
+                <form asp-action="CreateUser" asp-controller="Admin" method="post">
                     <div class="mb-3">
                         <label for="username" class="form-label">Username</label>
                         <input type="text" class="form-control" id="username" name="Username" required>
@@ -122,6 +157,7 @@
                     <div class="mb-3">
                         <label for="role" class="form-label">Role</label>
                         <select class="form-select" id="role" name="Role" required>
+                            <option value="" selected disabled>-- Pilih Role --</option>
                             <option value="Requestor">Requestor</option>
                             <option value="Approver">Approver</option>
                             <option value="Admin">Admin</option>
@@ -145,7 +181,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form asp-action="EditUser" asp-controller="Admin">
+                <form asp-action="EditUser" asp-controller="Admin" method="post">
                     <input type="hidden" id="edit-id" name="ID_User" />
                     <div class="mb-3">
                         <label for="edit-username" class="form-label">Username</label>
@@ -156,7 +192,7 @@
                         <input type="email" class="form-control" id="edit-email" name="Email" required>
                     </div>
                     <div class="mb-3">
-                        <label for="edit-password" class="form-label">Password User</label>
+                        <label for="edit-password" class="form-label">New Password</label>
                         <input type="password" class="form-control" id="edit-password" name="Password" placeholder="Kosongkan jika tidak ingin diubah">
                     </div>
                     <div class="mb-3">
@@ -188,16 +224,14 @@
     <script>
         // Script ini akan berjalan saat halaman dimuat
         document.addEventListener('DOMContentLoaded', function () {
-
-            // Cari modal edit
             var editUserModal = document.getElementById('editUserModal');
 
-            // Tambahkan event listener untuk menampilkan modal
+            // Event listener ini akan berjalan TEPAT SEBELUM modal edit ditampilkan
             editUserModal.addEventListener('show.bs.modal', function (event) {
-                // Tombol yang di-klik
+                // Tombol yang di-klik untuk memicu modal
                 var button = event.relatedTarget;
 
-                // Ambil data dari atribut 'data-*' di tombol
+                // Ambil data dari atribut 'data-*' di tombol yang diklik
                 var id = button.getAttribute('data-id');
                 var username = button.getAttribute('data-username');
                 var email = button.getAttribute('data-email');
@@ -205,14 +239,17 @@
                 var status = button.getAttribute('data-status');
 
                 // Cari elemen form di dalam modal
-                var modalBody = editUserModal.querySelector('.modal-body');
-                var idInput = modalBody.querySelector('#edit-id');
-                var usernameInput = modalBody.querySelector('#edit-username');
-                var emailInput = modalBody.querySelector('#edit-email');
-                var roleInput = modalBody.querySelector('#edit-role');
-                var statusInput = modalBody.querySelector('#edit-status');
+                var idInput = editUserModal.querySelector('#edit-id');
+                var usernameInput = editUserModal.querySelector('#edit-username');
+                var emailInput = editUserModal.querySelector('#edit-email');
+                var roleInput = editUserModal.querySelector('#edit-role');
+                var statusInput = editUserModal.querySelector('#edit-status');
 
-                // Isi nilai form dengan data dari tombol
+                // Reset password field
+                var passwordInput = editUserModal.querySelector('#edit-password');
+                passwordInput.value = "";
+
+                // Isi nilai-nilai form dengan data dari tombol
                 idInput.value = id;
                 usernameInput.value = username;
                 emailInput.value = email;
