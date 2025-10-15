@@ -34,19 +34,17 @@ public class AccountController : Controller
     {
         if (ModelState.IsValid)
         {
-
             var user = await _userService.AuthenticateAsync(model.Email, model.Password);
 
             if (user != null)
             {
-                // Kode SETELAH diperbaiki
                 var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.NameIdentifier, user.ID_User.ToString()),
-                    new Claim(ClaimTypes.Name, user.Username.Trim()), 
-                    new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.Role, user.Role.Trim())       
-                };
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.ID_User.ToString()),
+                new Claim(ClaimTypes.Name, user.Username.Trim()),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role.Trim())
+            };
 
                 var claimsIdentity = new ClaimsIdentity(
                     claims,
@@ -65,11 +63,15 @@ public class AccountController : Controller
                     new ClaimsPrincipal(claimsIdentity),
                     authProperties);
 
+                //TempData["LoginStatus"] = "Success";
+                TempData["SweetAlertType"] = "success";
+                TempData["SweetAlertMessage"] = "Login Berhasil!";
                 return RedirectToAction("Index", "Home");
             }
             else
             {
-                ModelState.AddModelError(string.Empty, "Email atau Password salah.");
+                TempData["LoginStatus"] = "Error";
+                ModelState.AddModelError(string.Empty, "The email or password you entered is incorrect.");
             }
         }
         return View(model);

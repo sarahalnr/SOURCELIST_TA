@@ -224,9 +224,9 @@
             </a>
         }
 
-        <a asp-controller="Account" asp-action="Logout">
+        <a id="logoutLink" asp-controller="Account" asp-action="Logout">
             <i class="bi bi-box-arrow-right"></i><span>Logout</span>
-        </a>    
+        </a>
     </nav>
 
 	<!-- Main Content -->
@@ -272,6 +272,30 @@
 		}
 		window.addEventListener('resize', handleResize);
 		handleResize();
+
+             // Logout Confirmation Logic
+        const logoutLink = document.getElementById('logoutLink');
+        if (logoutLink) {
+            logoutLink.addEventListener('click', function(event) {
+                event.preventDefault();
+
+                const logoutUrl = this.href; 
+                Swal.fire({
+                    title: 'Konfirmasi Logout',
+                    text: "Are you sure you want to log out?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#006400', 
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = logoutUrl;
+                    }
+                });
+            });
+        }
 
 	</script>
     @* SweetAlert notification *@
