@@ -240,7 +240,8 @@ namespace sourcelist.Services
                                 AttachmentFileName = reader["AttachmentFileName"]?.ToString(), 
                                 AttachedEndorsement = reader["AttachedEndorsement"]?.ToString(),
                                 SubmittedDate = reader["SubmittedDate"] != DBNull.Value ? Convert.ToDateTime(reader["SubmittedDate"]) : null,
-                                ValidityPeriod = reader["ValidityPeriod"]?.ToString()
+                                ValidityPeriod = reader["ValidityPeriod"]?.ToString(),
+                                Remarks = reader["Remarks"]?.ToString()
 
                             };
                         }
