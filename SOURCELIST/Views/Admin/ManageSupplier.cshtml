@@ -1,5 +1,4 @@
-﻿
-@model sourcelist.Services.PagedResult<sourcelist.DTOs.SupplierDTO>
+﻿@model sourcelist.Services.PagedResult<sourcelist.DTOs.SupplierDTO>
 
 @{
     ViewData["Title"] = "Manage Supplier";
@@ -26,27 +25,49 @@
             color: white;
             border-color: #8dbb4c;
         }
+
+            .tableheader th:first-child {
+                border-top-left-radius: 10px;
+            }
+
+            .tableheader th:last-child {
+                border-top-right-radius: 10px;
+            }
+
+        .form-header {
+            background: #a3d65c;
+            color: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 18px;
+            letter-spacing: 0.5px;
+            margin-top: 12px;
+        }
     </style>
 }
 
-<div class="container-fluid">
-    <h3 class="mb-4">Daftar Supplier</h3>
+<div class="container-fluid" style="font-family:Calibri;">
+
+    <div class="form-header">
+        <i class="bi bi-building-gear"></i> Daftar Supplier
+    </div>
 
     <div class="card-body">
-
         <div class="row mb-3">
             <div class="col-md-6">
-                <form asp-action="ManageSupplier" asp-controller="Admin" method="get">
-                    <div class="input-group">
-                        <input type="text" name="searchTerm" class="form-control" placeholder="Cari Nama atau Kode Vendor..." value="@searchTerm">
-                        <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search"></i> Cari</button>
-                    </div>
-                </form>
-            </div>
-            <div class="col-md-6 text-md-end mt-2 mt-md-0">
                 <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createSupplierModal">
                     <i class="bi bi-plus-circle"></i> Create Supplier
                 </button>
+            </div>
+            <div class="col-md-6 text-md-end mt-2 mt-md-0">
+                <form asp-action="ManageSupplier" asp-controller="Admin" method="get">
+                    <div class="input-group">
+                        <input type="text" id="searchBox" class="form-control" placeholder="Cari Nama atau Kode Vendor..." name="searchTerm" value="@searchTerm" autocomplete="off">
+                        <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search"></i> Cari</button>
+                    </div>
+                </form>
             </div>
         </div>
 

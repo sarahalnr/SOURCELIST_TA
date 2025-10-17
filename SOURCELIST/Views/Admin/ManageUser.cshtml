@@ -27,28 +27,71 @@
             color: white;
             border-color: #8dbb4c; 
         }
+
+        .form-header {
+            background: #a3d65c;
+            color: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 18px;
+            letter-spacing: 0.5px;
+            margin-top:12px;
+        }
+
+        .tableheader th {
+            background-color: #a3d65c;
+            color: white;
+            border-color: #8dbb4c;
+        }
+
+         
+            .tableheader th:first-child {
+                border-top-left-radius: 10px;
+            }
+
+            .tableheader th:last-child {
+                border-top-right-radius: 10px;
+            }
+
+        .form-header {
+            background: #a3d65c;
+            color: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 18px;
+            letter-spacing: 0.5px;
+            margin-top: 12px;
+        }
+
+     
 </style>
 }
 
-<div class="container-fluid">
-    <h3 class="mb-4">Daftar Pengguna user</h3>
+<div class="container-fluid" style="font-family:Calibri;">
+
+        <div class="form-header">
+        <i class="bi bi-people"></i>Daftar Pengguna
+        </div>
 
         <div class="card-body">
-
             <div class="row mb-3">
-                <div class="col-md-6">
-                    <form asp-action="ManageUser" asp-controller="Admin" method="get">
-                        <div class="input-group">
-                            <input type="text" name="searchTerm" class="form-control" placeholder="Search by Username or Email..." value="@searchTerm">
-                            <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search"></i> Cari</button>
-                        </div>
-                    </form>
-                </div>
-                <div class="col-md-6 text-md-end mt-2 mt-md-0">
-                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createUserModal">
-                        <i class="bi bi-plus-circle"></i> Create User
-                    </button>
-                </div>
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                            <i class="bi bi-plus-circle"></i> Create User
+                        </button>
+                    </div>
+                    <div class="col-md-6 text-md-end mt-2 mt-md-0">
+                        <form asp-action="ManageUser" asp-controller="Admin" method="get">
+                            <div class="input-group">
+                                <input type="text" id="searchBox" class="form-control" placeholder="Search by username or Email ... " name="searchTerm" value="@searchTerm" autocomplete="off">
+                                <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search"></i> Cari</button>
+                            </div>
+                        </form>
+                    </div>
             </div>
 
             <div class="table-responsive">
