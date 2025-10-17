@@ -18,7 +18,6 @@ public class UserService : IUserService
         _connectionString = configuration.GetConnectionString("DefaultConnection");
     }
 
-    // === METHOD INI SUDAH DIPERBAIKI ===
     public async Task CreateUserAsync(UserDTO userDto)
     {
         using (var connection = new SqlConnection(_connectionString))
@@ -29,10 +28,10 @@ public class UserService : IUserService
                 command.CommandType = CommandType.StoredProcedure;
                 command.Parameters.AddWithValue("@TransType", "CREATE");
                 command.Parameters.AddWithValue("@Username", userDto.Username);
-                command.Parameters.AddWithValue("@UserPassword", BC.HashPassword(userDto.Password)); // Password wajib ada saat create
+                command.Parameters.AddWithValue("@UserPassword", BC.HashPassword(userDto.Password)); 
                 command.Parameters.AddWithValue("@Email", userDto.Email);
                 command.Parameters.AddWithValue("@Role", userDto.Role);
-                // Status akan menggunakan nilai default 'Aktif' di SP
+              
 
                 await connection.OpenAsync();
                 await command.ExecuteNonQueryAsync();
@@ -40,7 +39,6 @@ public class UserService : IUserService
         }
     }
 
-    // === METHOD INI SUDAH DIPERBAIKI ===
     public async Task UpdateUserAsync(UserDTO userDto)
     {
         using (var connection = new SqlConnection(_connectionString))
@@ -50,13 +48,13 @@ public class UserService : IUserService
             {
                 command.CommandType = CommandType.StoredProcedure;
                 command.Parameters.AddWithValue("@TransType", "UPDATE");
-                command.Parameters.AddWithValue("@UserID", userDto.ID_User); // Menggunakan @UserID sesuai SP
+                command.Parameters.AddWithValue("@UserID", userDto.ID_User); 
                 command.Parameters.AddWithValue("@Username", userDto.Username);
                 command.Parameters.AddWithValue("@Email", userDto.Email);
                 command.Parameters.AddWithValue("@Role", userDto.Role);
                 command.Parameters.AddWithValue("@Status", userDto.Status);
 
-                // Hanya kirim parameter password jika diisi (logika ini sudah ada di SP, tapi lebih aman di C# juga)
+                // Hanya kirim parameter password jika diisi 
                 if (!string.IsNullOrEmpty(userDto.Password))
                 {
                     command.Parameters.AddWithValue("@UserPassword", BC.HashPassword(userDto.Password));
@@ -72,7 +70,6 @@ public class UserService : IUserService
         }
     }
 
-    // Method ini sudah OK, tidak perlu diubah
     public async Task<UserDTO?> AuthenticateAsync(string email, string password)
     {
         UserDTO? user = null;
@@ -109,7 +106,6 @@ public class UserService : IUserService
         return user;
     }
 
-    // Method ini sudah OK, tidak perlu diubah
     public async Task<PagedResult<UserDTO>> GetAllUsersPagedAsync(int pageNumber, int pageSize, string searchTerm)
     {
         var users = new List<UserDTO>();

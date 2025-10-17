@@ -1,0 +1,272 @@
+﻿
+@model sourcelist.Services.PagedResult<sourcelist.DTOs.SupplierDTO>
+
+@{
+    ViewData["Title"] = "Manage Supplier";
+    int page = ViewBag.Page ?? 1;
+    int pageSize = ViewBag.PageSize ?? 10;
+    string searchTerm = ViewBag.SearchTerm as string ?? "";
+    int totalRows = ViewBag.TotalRows ?? 0;
+    int totalPages = totalRows > 0 ? (int)Math.Ceiling((double)totalRows / pageSize) : 1;
+    int startRow = (page - 1) * pageSize + 1;
+    int endRow = startRow + Model.Data.Count() - 1;
+
+    // Logika untuk menampilkan tombol halaman
+    int maxPagesToShow = 5;
+    int startPage = Math.Max(1, page - maxPagesToShow / 2);
+    int endPage = Math.Min(totalPages, startPage + maxPagesToShow - 1);
+    startPage = Math.Max(1, endPage - maxPagesToShow + 1);
+}
+@section Head {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        .tableheader th {
+            background-color: #a3d65c;
+            color: white;
+            border-color: #8dbb4c;
+        }
+    </style>
+}
+
+<div class="container-fluid">
+    <h3 class="mb-4">Daftar Supplier</h3>
+
+    <div class="card-body">
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <form asp-action="ManageSupplier" asp-controller="Admin" method="get">
+                    <div class="input-group">
+                        <input type="text" name="searchTerm" class="form-control" placeholder="Cari Nama atau Kode Vendor..." value="@searchTerm">
+                        <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search"></i> Cari</button>
+                    </div>
+                </form>
+            </div>
+            <div class="col-md-6 text-md-end mt-2 mt-md-0">
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createSupplierModal">
+                    <i class="bi bi-plus-circle"></i> Create Supplier
+                </button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover " width="100%" cellspacing="0">
+                <thead class="tableheader">
+                    <tr>
+                        <th>Nama Supplier</th>
+                        <th>Kode Vendor</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Data != null && Model.Data.Any())
+                    {
+                        foreach (var supplier in Model.Data)
+                        {
+                            <tr>
+                                <td>@supplier.NamaSupplier</td>
+                                <td>@supplier.KodeVendor</td>
+                                <td>@supplier.EmailSupplier</td>
+                                <td>
+                                    <span class="badge @(supplier.Status == "Aktif" ? "bg-success" : "bg-danger")">@supplier.Status</span>
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-warning btn-sm btn-edit"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editSupplierModal"
+                                            data-id="@supplier.ID_Supplier"
+                                            data-nama="@supplier.NamaSupplier"
+                                            data-kode="@supplier.KodeVendor"
+                                            data-email="@supplier.EmailSupplier"
+                                            data-status="@supplier.Status">
+                                        <i class="bi bi-pencil-square"></i> Edit
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center">Tidak ada data supplier ditemukan.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-md-6">
+                @if (totalRows > 0)
+                {
+                    <p class="text-muted">Showing @startRow to @endRow of @totalRows entries</p>
+                }
+            </div>
+            <div class="col-md-6">
+                @if (totalPages > 1)
+                {
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-end">
+                            <li class="page-item @(page == 1 ? "disabled" : "")">
+                                <a class="page-link" asp-action="ManageSupplier" asp-route-page="@(page - 1)" asp-route-searchTerm="@searchTerm">Previous</a>
+                            </li>
+
+                            @for (int i = startPage; i <= endPage; i++)
+                            {
+                                <li class="page-item @(i == page ? "active" : "")">
+                                    <a class="page-link" asp-action="ManageSupplier" asp-route-page="@i" asp-route-searchTerm="@searchTerm">@i</a>
+                                </li>
+                            }
+
+                            <li class="page-item @(page == totalPages ? "disabled" : "")">
+                                <a class="page-link" asp-action="ManageSupplier" asp-route-page="@(page + 1)" asp-route-searchTerm="@searchTerm">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="createSupplierModal" tabindex="-1" aria-labelledby="createSupplierModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createSupplierModalLabel">New Supplier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createForm" asp-action="CreateSupplier" asp-controller="Admin" method="post">
+                    <div class="mb-3">
+                        <label for="nama" class="form-label">Nama Supplier</label>
+                        <input type="text" class="form-control" name="NamaSupplier" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="kode" class="form-label">Kode Vendor</label>
+                        <input type="text" class="form-control" name="KodeVendor" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Supplier</label>
+                        <input type="email" class="form-control" name="EmailSupplier" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editSupplierModal" tabindex="-1" aria-labelledby="editSupplierModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editSupplierModalLabel">Edit Supplier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm" asp-action="EditSupplier" asp-controller="Admin" method="post">
+                    <input type="hidden" id="edit-id" name="ID_Supplier" />
+                    <div class="mb-3">
+                        <label for="edit-nama" class="form-label">Nama Supplier</label>
+                        <input type="text" class="form-control" id="edit-nama" name="NamaSupplier" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-kode" class="form-label">Kode Vendor</label>
+                        <input type="text" class="form-control" id="edit-kode" name="KodeVendor" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-email" class="form-label">Email Supplier</label>
+                        <input type="email" class="form-control" id="edit-email" name="EmailSupplier" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-status" class="form-label">Status</label>
+                        <select class="form-select" id="edit-status" name="Status" required>
+                            <option value="Aktif">Aktif</option>
+                            <option value="Non-Aktif">Non-Aktif</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            var editSupplierModal = document.getElementById('editSupplierModal');
+            editSupplierModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                var id = button.getAttribute('data-id');
+                var nama = button.getAttribute('data-nama');
+                var kode = button.getAttribute('data-kode');
+                var email = button.getAttribute('data-email');
+                var status = button.getAttribute('data-status');
+
+                editSupplierModal.querySelector('#edit-id').value = id;
+                editSupplierModal.querySelector('#edit-nama').value = nama;
+                editSupplierModal.querySelector('#edit-kode').value = kode;
+                editSupplierModal.querySelector('#edit-email').value = email;
+                editSupplierModal.querySelector('#edit-status').value = status;
+            });
+
+            const createForm = document.getElementById('createForm');
+            const editForm = document.getElementById('editForm');
+
+            // event listener untuk form CREATE
+            if (createForm) {
+                createForm.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    Swal.fire({
+                        title: 'Konfirmasi Buat Supplier',
+                        text: "Apakah Anda yakin ingin membuat supplier baru ini?",
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#28a745',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Ya, Buat!',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.submit();
+                        }
+                    });
+                });
+            }
+
+            // event listener untuk form EDIT
+            if (editForm) {
+                editForm.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    Swal.fire({
+                        title: 'Konfirmasi Perubahan',
+                        text: "Apakah Anda yakin ingin menyimpan perubahan ini?",
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#007bff',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Ya, Simpan!',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.submit();
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+}

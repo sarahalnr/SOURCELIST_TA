@@ -10,11 +10,14 @@ public class AdminController : Controller
 {
     private readonly IUserService _userService;
     private readonly ISourceListService _sourceListService;
+    private readonly ISupplierService _supplierService;
 
-    public AdminController(IUserService userService, ISourceListService sourceListService)
+    public AdminController(IUserService userService, ISourceListService sourceListService, ISupplierService supplierService)
     {
         _userService = userService;
         _sourceListService = sourceListService;
+        _supplierService = supplierService;
+
     }
 
     // Aksi untuk menampilkan halaman Manage User
@@ -47,5 +50,28 @@ public class AdminController : Controller
         return RedirectToAction("ManageUser");
     }
 
-    //  menambahkan method untuk manage supplier di bawah sini
+    [HttpGet]
+    public async Task<IActionResult> ManageSupplier(int page = 1, int pageSize = 10, string searchTerm = null)
+    {
+        var result = await _supplierService.GetAllSuppliersPagedAsync(page, pageSize, searchTerm);
+        ViewBag.Page = page;
+        ViewBag.PageSize = pageSize;
+        ViewBag.TotalRows = result.TotalRows;
+        ViewBag.SearchTerm = searchTerm;
+        return View(result); 
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateSupplier(SupplierDTO supplierDto)
+    {
+        await _supplierService.CreateSupplierAsync(supplierDto);
+        return RedirectToAction("ManageSupplier");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> EditSupplier(SupplierDTO supplierDto)
+    {
+        await _supplierService.UpdateSupplierAsync(supplierDto);
+        return RedirectToAction("ManageSupplier");
+    }
 }
