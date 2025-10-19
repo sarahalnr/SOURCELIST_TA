@@ -1,25 +1,27 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
     var userName = User.Identity.Name ?? "Guest";
+    int currentYear = DateTime.Now.Year;
 }
 
 @section Head {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         .dashboard-container {
             font-family: 'Segoe UI', system-ui, sans-serif;
         }
-
         .welcome-banner {
             background-color: #a3d65c;
             color: white;
             border-radius: 15px;
             padding: 0 2.5rem;
             display: flex;
-            align-items: center; /
+            align-items: center;
             margin-bottom: 2.5rem;
-            position: relative;             
-            height: 180px; /* Atur tinggi kartu */
-            overflow: visible; /* Izinkan gambar keluar dari kartu */
+            position: relative;
+            height: 180px;
+            overflow: visible;
         }
 
             .welcome-banner .text-content h1 {
@@ -38,12 +40,12 @@
 
             .welcome-banner .illustration {
                 position: absolute;
-                right: 40px; 
-                bottom: -48px; 
+                right: 40px;
+                bottom: -48px;
             }
 
                 .welcome-banner .illustration img {
-                    max-width: 270px; /* Perbesar gambar */
+                    max-width: 270px;
                     height: auto;
                 }
 
@@ -66,51 +68,247 @@
                         max-width: 180px;
                     }
         }
+
+        /* --- Style untuk Chart Card --- */
+        .chart-card {
+            background-color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            height: 100%; /* <-- Pastikan tinggi sama */
+        }
+
+        .chart-container {
+            height: 350px;
+            position: relative;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+            .chart-header h2 {
+                font-size: 1.5rem;
+                font-weight: 600;
+                margin: 0;
+                flex-grow: 1;
+            }
+
+        .chart-legend {
+            display: flex;
+        }
+
+            .chart-legend span {
+                display: inline-flex;
+                align-items: center;
+                margin-left: 1rem;
+                font-size: 0.9rem;
+                color: #555;
+            }
+
+                .chart-legend span::before {
+                    content: '';
+                    display: inline-block;
+                    width: 12px;
+                    height: 12px;
+                    border-radius: 50%;
+                    margin-right: 0.5rem;
+                }
+
+            .chart-legend .income-dot::before {
+                background-color: #A3D65C;
+            }
+            /* Hijau */
+            .chart-legend .expense-dot::before {
+                background-color: #6C7DD8;
+            }
+            /* Ungu */
+            .chart-legend .reject-dot::before {
+                background-color: #FF6B6B; /* Merah */
+            }
+
+        .chart-filters {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+            .chart-filters select {
+                padding: 0.5rem 0.8rem;
+                border-radius: 8px;
+                border: 1px solid #ddd;
+                font-size: 0.9rem;
+                cursor: pointer;
+                background-color: #f9f9f9;
+            }
+
+        @@media (max-width: 992px) {
+            .chart-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
     </style>
 }
 
 <div class="dashboard-container">
+
     <div class="welcome-banner">
         <div class="text-content">
             <h1>Hi, @userName!</h1>
-            <p>Ready to start your day?</p>
+            <p>Welcome to the Sourcelist Dashboard.</p>
         </div>
         <div class="illustration">
             <img src="https://cdni.iconscout.com/illustration/premium/thumb/woman-working-on-laptop-5692639-4759504.png" alt="Illustration of a person working">
+    </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h2>Request Performance</h2>
+                    <div class="chart-legend">
+                        <span class="income-dot">Completed</span>
+                        <span class="expense-dot">Pending</span>
+                        <span class="reject-dot">Rejected</span>
+                    </div>
+                    <div class="chart-filters">
+                        <select id="sourcelistYearFilter">
+                            <option value="@currentYear">(@currentYear)</option>
+                            <option value="@(currentYear - 1)"> (@(currentYear - 1))</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="sourcelistStatusChart"></canvas>
+                </div>
+            </div>
         </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h2>Total Requests</h2>
+                </div>
+                <div class="chart-container">
+                    <canvas id="sourcelistTotalChart"></canvas>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
-@* 
-    <div class="stats-overview">
-        <h2>Overview</h2>
-        <div class="row">
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="stat-card card-yellow">
-                    <div class="stat-value">83%</div>
-                    <div class="stat-label">Open Rate</div>
-                </div>
-            </div>
 
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="stat-card card-purple">
-                    <div class="stat-value">77%</div>
-                    <div class="stat-label">Complete</div>
-                </div>
-            </div>
 
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="stat-card card-pink">
-                    <div class="stat-value">91</div>
-                    <div class="stat-label">Unique Views</div>
-                </div>
-            </div>
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
 
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="stat-card card-lavender">
-                    <div class="stat-value">126</div>
-                    <div class="stat-label">Total Views</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div> *@
+            const ctxStatus = document.getElementById('sourcelistStatusChart').getContext('2d');
+            const sourcelistStatusChart = new Chart(ctxStatus, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Completed', data: [], backgroundColor: '#A3D65C',
+                            borderRadius: 5, categoryPercentage: 0.6, barPercentage: 0.7
+                        },
+                        {
+                            label: 'Pending', data: [], backgroundColor: '#6C7DD8',
+                            borderRadius: 5, categoryPercentage: 0.6, barPercentage: 0.7
+                        },
+                        {
+                            label: 'Rejected', data: [], backgroundColor: '#FF6B6B',
+                            borderRadius: 5, categoryPercentage: 0.6, barPercentage: 0.7
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { stacked: false, grid: { display: false } },
+
+                        y: {
+                            stacked: false,
+                            beginAtZero: true,
+                            max: 10, // <-- Nilai Y tertinggi adalah 10
+                            ticks: {
+                                stepSize: 1 // <-- Langkahnya 1 (jadi 1, 2, 3...)
+                            }
+                        }
+                    }
+                }
+            });
+
+            const ctxTotal = document.getElementById('sourcelistTotalChart').getContext('2d');
+            const sourcelistTotalChart = new Chart(ctxTotal, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Total Permintaan', data: [],
+                        backgroundColor: 'rgba(108, 125, 216, 0.1)',
+                        borderColor: '#6C7DD8', fill: true, tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false } },
+
+                        y: {
+                            beginAtZero: true,
+                            max: 10, // <-- Nilai Y tertinggi adalah 10
+                            ticks: {
+                                stepSize: 1 // <-- Langkahnya 1 (jadi 1, 2, 3...)
+                            }
+                        }
+                    }
+                }
+            });
+
+            // --- FUNGSI UNTUK MEMUAT DATA (Data Asli) ---
+            async function loadChartData(year) {
+                try {
+                    const response = await fetch(`/Home/GetSourcelistChartData?year=${year}`);
+                    if (!response.ok) {
+                        throw new Error(`Gagal mengambil data: ${response.statusText}`);
+                    }
+                    const data = await response.json();
+
+                    // Update Grafik 1 (Batang)
+                    sourcelistStatusChart.data.labels = data.labels;
+                    sourcelistStatusChart.data.datasets[0].data = data.approveData;
+                    sourcelistStatusChart.data.datasets[1].data = data.rejectData;
+                    sourcelistStatusChart.data.datasets[2].data = data.rejectedData;
+                    sourcelistStatusChart.update();
+
+                    // Update Grafik 2 (Garis/Area)
+                    sourcelistTotalChart.data.labels = data.labels;
+                    sourcelistTotalChart.data.datasets[0].data = data.totalData;
+                    sourcelistTotalChart.update();
+
+                } catch (error) {
+                    console.error("Gagal memuat data grafik:", error);
+                }
+            }
+
+            // --- Event Listener ---
+            const yearFilter = document.getElementById('sourcelistYearFilter');
+            loadChartData(yearFilter.value);
+            yearFilter.addEventListener('change', function () {
+                loadChartData(this.value);
+            });
+
+        });
+    </script>
+}
