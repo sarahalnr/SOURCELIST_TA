@@ -44,7 +44,7 @@ namespace sourcelist.Controllers
             {
                 viewModel.Labels.Add(CultureInfo.GetCultureInfo("id-ID").DateTimeFormat.GetAbbreviatedMonthName(month));
                 viewModel.ApproveData.Add(0); // Completed
-                viewModel.RejectData.Add(0);  // Pending
+                viewModel.PendingData.Add(0);  // Pending
                 viewModel.RejectedData.Add(0); // Rejected
                 viewModel.TotalData.Add(0);
             }
@@ -86,7 +86,7 @@ namespace sourcelist.Controllers
                 {
                     int index = item.Month - 1;
                     viewModel.ApproveData[index] = item.ApproveCount;
-                    viewModel.RejectData[index] = item.PendingCount;
+                    viewModel.PendingData[index] = item.PendingCount;
                     viewModel.RejectedData[index] = item.RejectedCount;
                 }
 

@@ -75,7 +75,7 @@
             border-radius: 15px;
             padding: 1.5rem;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            height: 100%; /* <-- Pastikan tinggi sama */
+            height: 100%; 
         }
 
         .chart-container {
@@ -125,7 +125,7 @@
             }
             /* Hijau */
             .chart-legend .expense-dot::before {
-                background-color: #6C7DD8;
+                background-color: #f6f540;
             }
             /* Ungu */
             .chart-legend .reject-dot::before {
@@ -219,7 +219,7 @@
                             borderRadius: 5, categoryPercentage: 0.6, barPercentage: 0.7
                         },
                         {
-                            label: 'Pending', data: [], backgroundColor: '#6C7DD8',
+                            label: 'Pending', data: [], backgroundColor: '#f6f540',
                             borderRadius: 5, categoryPercentage: 0.6, barPercentage: 0.7
                         },
                         {
@@ -288,7 +288,7 @@
                     // Update Grafik 1 (Batang)
                     sourcelistStatusChart.data.labels = data.labels;
                     sourcelistStatusChart.data.datasets[0].data = data.approveData;
-                    sourcelistStatusChart.data.datasets[1].data = data.rejectData;
+                    sourcelistStatusChart.data.datasets[1].data = data.pendingData;
                     sourcelistStatusChart.data.datasets[2].data = data.rejectedData;
                     sourcelistStatusChart.update();
 

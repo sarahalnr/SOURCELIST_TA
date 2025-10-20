@@ -8,7 +8,7 @@ namespace sourcelist.Models.ViewModels
 
         // Data untuk Grafik 1 
         public List<int> ApproveData { get; set; } = new List<int>(); 
-        public List<int> RejectData { get; set; } = new List<int>();  
+        public List<int> PendingData { get; set; } = new List<int>();  
 
         public List<int> RejectedData { get; set; } = new List<int>(); 
 
