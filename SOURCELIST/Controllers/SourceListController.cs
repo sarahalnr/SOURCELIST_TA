@@ -1,6 +1,4 @@
-﻿using iText.Forms;
-using iText.Kernel.Pdf;
-using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +13,9 @@ using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-
+using PdfSharp.Pdf;
+using PdfSharp.Pdf.AcroForms;
+using PdfSharp.Pdf.IO;
 namespace sourcelist.Controllers
 {
     public class SourceListController : Controller
@@ -449,62 +449,75 @@ namespace sourcelist.Controllers
             }
             return Json(new { kodeVendor = supplier.KodeVendor });
         }
-
         [HttpGet]
         public async Task<IActionResult> DownloadSourceListPdf(string id)
         {
             var data = await _sourceListService.GetSourceListDetailAsync(id);
 
-            // jika data tidak ditemukan
             if (data == null)
             {
                 return NotFound($"Source List with number {id} not found.");
             }
-            // TENTUKAN LOKASI TEMPLATE
+
             string templatePath = Path.Combine(_webHostEnvironment.ContentRootPath,
-                                               "Reports",
-                                               "sourcelist template.pdf");
+                                                "Reports",
+                                                "sourcelist template.pdf");
 
-            MemoryStream outputStream = new MemoryStream();
-
-            // BUKA, ISI, DAN KUNCI PDF
-            using (PdfReader reader = new PdfReader(templatePath))
-            using (PdfWriter writer = new PdfWriter(outputStream))
-            using (PdfDocument pdfDoc = new PdfDocument(reader, writer))
-            {
-                PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
-
-                // ISI DATA
-                form.GetField("Sourcelist No Field")?.SetValue(data.SourceListNumber);
-                form.GetField("Requestor Field")?.SetValue(data.Requestor);
-                form.GetField("Bau No Field")?.SetValue(data.BAUNumber);
-                form.GetField("Part Description Field")?.SetValue(data.PartDescription);
-                form.GetField("Supplier Name Field")?.SetValue(data.SupplierName);
-                form.GetField("vendor Kode Field")?.SetValue(data.VendorCode);
-                form.GetField("Supplier Status Field")?.SetValue(data.SupplierStatus);
-                form.GetField("Sourcelist Status Field")?.SetValue(data.SourceListStatus);
-                form.GetField("CMS# of final CRB field")?.SetValue(data.CMSFinalCRB); 
-                form.GetField("Reason Field")?.SetValue(data.ReasonSubmission); 
-
-                // Isi data Approver
-       
-                form.GetField("Approver Name field")?.SetValue(data.ApproverName);
-                form.GetField("Approver Email Field")?.SetValue(data.ApproverEmail);
-                form.GetField("Approver Status Field")?.SetValue(data.ApproverStatus);
-                form.GetField("Validty Period field")?.SetValue(data.ValidityPeriod); 
-                form.GetField("Remarks Field")?.SetValue(data.Remarks); 
-
-                string tanggal = DateTime.Now.ToString("dd-MMM-yyyy");
-                form.GetField("Date Field")?.SetValue(tanggal);
-
-                // Kunci form agar tidak bisa diedit
-                form.FlattenFields();
-            }
-            outputStream.Position = 0;
+            byte[] pdfBytes;
             string fileName = $"{id}.pdf";
+            using (MemoryStream outputStream = new MemoryStream())
+            {
+                using (PdfDocument document = PdfReader.Open(templatePath, PdfDocumentOpenMode.Modify))
+                {
+                    if (document.AcroForm != null)
+                    {
+                        PdfAcroForm form = document.AcroForm;
 
-            return File(outputStream, "application/pdf", fileName);
+                        System.Diagnostics.Debug.WriteLine("===== NAMA-NAMA FIELD (PdfSharp) =====");
+                        foreach (string fieldName in form.Fields.Names)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Nama Internal Field: {fieldName}");
+                        }
+                        System.Diagnostics.Debug.WriteLine("========================================");
+
+                        (form.Fields["text_1elwr"] as PdfTextField).Text = data.SourceListNumber ?? "";
+                        (form.Fields["text_2ztzh"] as PdfTextField).Text = data.Requestor ?? "";
+                        (form.Fields["text_3iovz"] as PdfTextField).Text = data.BAUNumber ?? "";
+                        (form.Fields["text_4qahh"] as PdfTextField).Text = data.PartDescription ?? "";
+                        (form.Fields["text_5kfoc"] as PdfTextField).Text = data.SupplierName ?? "";
+                        (form.Fields["text_6zqby"] as PdfTextField).Text = data.VendorCode ?? "";
+                        (form.Fields["text_7odpb"] as PdfTextField).Text = data.SupplierStatus ?? "";
+                        (form.Fields["text_8dnui"] as PdfTextField).Text = data.SourceListStatus ?? "";
+                        (form.Fields["text_9ogqw"] as PdfTextField).Text = data.CMSFinalCRB ?? "";
+                        (form.Fields["text_10ktwi"] as PdfTextField).Text = data.ReasonSubmission ?? "";
+
+                        (form.Fields["text_11odkl"] as PdfTextField).Text = data.ApproverName ?? "";
+                        (form.Fields["text_12ahjh"] as PdfTextField).Text = data.ApproverEmail ?? "";
+                        (form.Fields["text_13gfkz"] as PdfTextField).Text = data.ApproverStatus ?? "";
+                        (form.Fields["text_16geno"] as PdfTextField).Text = data.ValidityPeriod ?? "";
+                        (form.Fields["text_18guia"] as PdfTextField).Text = data.Remarks ?? "";
+
+                        string tanggal = DateTime.Now.ToString("dd-MMM-yyyy");
+                        (form.Fields["text_19drmf"] as PdfTextField).Text = tanggal;
+
+                        foreach (string fieldName in form.Fields.Names)
+                        {
+                            // Ambil field-nya berdasarkan nama, LALU set ReadOnly
+                            PdfAcroField field = form.Fields[fieldName];
+                            if (field != null)
+                            {
+                                field.ReadOnly = true;
+                            }
+                        }
+                    }
+
+                    document.Save(outputStream);
+                } 
+                pdfBytes = outputStream.ToArray();
+            } 
+            return File(pdfBytes, "application/pdf", fileName);
         }
+
         //[HttpGet]
         //public JsonResult SearchApprovers(string term)
         //{

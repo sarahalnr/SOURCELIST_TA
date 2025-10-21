@@ -15,7 +15,6 @@
     <PackageReference Include="Azure.Identity" Version="1.15.0" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" />
-    <PackageReference Include="itext.pdfcalligraph" Version="5.0.3" />
     <PackageReference Include="Microsoft.AspNet.Mvc" Version="5.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="8.0.0" />
@@ -29,6 +28,7 @@
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.9.0" />
     <PackageReference Include="Microsoft.SharePointOnline.CSOM" Version="16.1.25912.12000" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.0" />
+    <PackageReference Include="PDFsharp-GDI" Version="6.2.2" />
     <PackageReference Include="ReportViewerCore.NETCore" Version="15.1.26" />
     <PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
     <PackageReference Include="System.DirectoryServices.AccountManagement" Version="8.0.0" />
@@ -41,5 +41,10 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <Folder Include="wwwroot\Attachments\" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Update="Reports\sourcelist template.pdf">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
 	</ItemGroup>
 </Project>
