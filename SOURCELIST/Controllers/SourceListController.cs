@@ -15,9 +15,6 @@ using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using iText.Forms;
-using iText.Kernel.Pdf;
-
 
 namespace sourcelist.Controllers
 {
