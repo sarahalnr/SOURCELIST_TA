@@ -235,7 +235,11 @@
         
     @* perbaiki agar unduh pdf  *@
     <div class="fixed-bottom-right">
-        <button type="button" class="btn btn-danger" id="btnCopyLink"><i class="bi bi-clipboard"></i> Download PDF</button>
+        <a href="@Url.Action("DownloadSourceListPdf", "SourceList", new { id = Model.SourceListNumber })"
+           class="btn btn-danger"
+           target="_blank">
+            <i class="fa fa-file-pdf"></i> Download PDF
+        </a>
 
         @if (ViewBag.ShowApprovalButtons as bool? == true)
         {

@@ -1,18 +1,23 @@
-﻿using sourcelist.Services;
-using Microsoft.AspNetCore.Mvc;
-using sourcelist.Models.ViewModels;
-using System.Threading.Tasks;
+﻿using iText.Forms;
+using iText.Kernel.Pdf;
 using Microsoft.AspNetCore.Hosting;
-using System.IO;
-using System;
-using System.Linq;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using sourcelist.Data;
 using sourcelist.DTOs;
 using sourcelist.Helper;
 using sourcelist.Models;
-using sourcelist.Data;
+using sourcelist.Models.ViewModels;
+using sourcelist.Services;
+using System;
+using System.IO;
+using System.Linq;
 using System.Security.Claims;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Threading.Tasks;
+using iText.Forms;
+using iText.Kernel.Pdf;
+
 
 namespace sourcelist.Controllers
 {
@@ -446,6 +451,62 @@ namespace sourcelist.Controllers
                 return Json(null);
             }
             return Json(new { kodeVendor = supplier.KodeVendor });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DownloadSourceListPdf(string id)
+        {
+            var data = await _sourceListService.GetSourceListDetailAsync(id);
+
+            // jika data tidak ditemukan
+            if (data == null)
+            {
+                return NotFound($"Source List with number {id} not found.");
+            }
+            // TENTUKAN LOKASI TEMPLATE
+            string templatePath = Path.Combine(_webHostEnvironment.ContentRootPath,
+                                               "Reports",
+                                               "sourcelist template.pdf");
+
+            MemoryStream outputStream = new MemoryStream();
+
+            // BUKA, ISI, DAN KUNCI PDF
+            using (PdfReader reader = new PdfReader(templatePath))
+            using (PdfWriter writer = new PdfWriter(outputStream))
+            using (PdfDocument pdfDoc = new PdfDocument(reader, writer))
+            {
+                PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
+
+                // ISI DATA
+                form.GetField("Sourcelist No Field")?.SetValue(data.SourceListNumber);
+                form.GetField("Requestor Field")?.SetValue(data.Requestor);
+                form.GetField("Bau No Field")?.SetValue(data.BAUNumber);
+                form.GetField("Part Description Field")?.SetValue(data.PartDescription);
+                form.GetField("Supplier Name Field")?.SetValue(data.SupplierName);
+                form.GetField("vendor Kode Field")?.SetValue(data.VendorCode);
+                form.GetField("Supplier Status Field")?.SetValue(data.SupplierStatus);
+                form.GetField("Sourcelist Status Field")?.SetValue(data.SourceListStatus);
+                form.GetField("CMS# of final CRB field")?.SetValue(data.CMSFinalCRB); 
+                form.GetField("Reason Field")?.SetValue(data.ReasonSubmission); 
+
+                // Isi data Approver
+       
+                form.GetField("Approver Name field")?.SetValue(data.ApproverName);
+                form.GetField("Approver Email Field")?.SetValue(data.ApproverEmail);
+                form.GetField("Approver Status Field")?.SetValue(data.ApproverStatus);
+                form.GetField("Validty Period field")?.SetValue(data.ValidityPeriod); 
+                form.GetField("Remarks Field")?.SetValue(data.Remarks); 
+
+                string tanggal = DateTime.Now.ToString("dd-MMM-yyyy");
+                form.GetField("Date Field")?.SetValue(tanggal);
+
+                // Kunci form agar tidak bisa diedit
+                form.FlattenFields();
+            }
+            outputStream.Position = 0;
+            string fileName = $"{id}.pdf";
+
+            return File(outputStream, "application/pdf", fileName);
         }
         //[HttpGet]
         //public JsonResult SearchApprovers(string term)
