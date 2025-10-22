@@ -2,6 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using QuestPDF.Elements;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 using sourcelist.Data;
 using sourcelist.DTOs;
 using sourcelist.Helper;
@@ -13,9 +17,8 @@ using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using PdfSharp.Pdf;
-using PdfSharp.Pdf.AcroForms;
-using PdfSharp.Pdf.IO;
+
+
 namespace sourcelist.Controllers
 {
     public class SourceListController : Controller
@@ -449,72 +452,94 @@ namespace sourcelist.Controllers
             }
             return Json(new { kodeVendor = supplier.KodeVendor });
         }
+
+
         [HttpGet]
         public async Task<IActionResult> DownloadSourceListPdf(string id)
         {
             var data = await _sourceListService.GetSourceListDetailAsync(id);
-
             if (data == null)
             {
                 return NotFound($"Source List with number {id} not found.");
             }
+            QuestPDF.Settings.License = LicenseType.Community;
 
-            string templatePath = Path.Combine(_webHostEnvironment.ContentRootPath,
-                                                "Reports",
-                                                "sourcelist template.pdf");
-
-            byte[] pdfBytes;
-            string fileName = $"{id}.pdf";
-            using (MemoryStream outputStream = new MemoryStream())
+            var document = Document.Create(container =>
             {
-                using (PdfDocument document = PdfReader.Open(templatePath, PdfDocumentOpenMode.Modify))
+                container.Page(page =>
                 {
-                    if (document.AcroForm != null)
-                    {
-                        PdfAcroForm form = document.AcroForm;
+                    page.Size(PageSizes.A4);
+                    page.Margin(40, Unit.Point);
 
-                        System.Diagnostics.Debug.WriteLine("===== NAMA-NAMA FIELD (PdfSharp) =====");
-                        foreach (string fieldName in form.Fields.Names)
+                    // --- HEADER (Judul) ---
+                    page.Header()
+                        .AlignCenter()
+                        .Text("Source List Report")
+                        .SemiBold().FontSize(16);
+
+                    // --- CONTENT (Isi Laporan) ---
+                  
+                    page.Content()
+                        .PaddingVertical(1, Unit.Centimetre)
+                        .Column(col => 
                         {
-                            System.Diagnostics.Debug.WriteLine($"Nama Internal Field: {fieldName}");
-                        }
-                        System.Diagnostics.Debug.WriteLine("========================================");
-
-                        (form.Fields["text_1elwr"] as PdfTextField).Text = data.SourceListNumber ?? "";
-                        (form.Fields["text_2ztzh"] as PdfTextField).Text = data.Requestor ?? "";
-                        (form.Fields["text_3iovz"] as PdfTextField).Text = data.BAUNumber ?? "";
-                        (form.Fields["text_4qahh"] as PdfTextField).Text = data.PartDescription ?? "";
-                        (form.Fields["text_5kfoc"] as PdfTextField).Text = data.SupplierName ?? "";
-                        (form.Fields["text_6zqby"] as PdfTextField).Text = data.VendorCode ?? "";
-                        (form.Fields["text_7odpb"] as PdfTextField).Text = data.SupplierStatus ?? "";
-                        (form.Fields["text_8dnui"] as PdfTextField).Text = data.SourceListStatus ?? "";
-                        (form.Fields["text_9ogqw"] as PdfTextField).Text = data.CMSFinalCRB ?? "";
-                        (form.Fields["text_10ktwi"] as PdfTextField).Text = data.ReasonSubmission ?? "";
-
-                        (form.Fields["text_11odkl"] as PdfTextField).Text = data.ApproverName ?? "";
-                        (form.Fields["text_12ahjh"] as PdfTextField).Text = data.ApproverEmail ?? "";
-                        (form.Fields["text_13gfkz"] as PdfTextField).Text = data.ApproverStatus ?? "";
-                        (form.Fields["text_16geno"] as PdfTextField).Text = data.ValidityPeriod ?? "";
-                        (form.Fields["text_18guia"] as PdfTextField).Text = data.Remarks ?? "";
-
-                        string tanggal = DateTime.Now.ToString("dd-MMM-yyyy");
-                        (form.Fields["text_19drmf"] as PdfTextField).Text = tanggal;
-
-                        foreach (string fieldName in form.Fields.Names)
-                        {
-                            // Ambil field-nya berdasarkan nama, LALU set ReadOnly
-                            PdfAcroField field = form.Fields[fieldName];
-                            if (field != null)
+                            void BuatBaris(string label, string isi)
                             {
-                                field.ReadOnly = true;
-                            }
-                        }
-                    }
+                                col.Item().Row(row =>
+                                {
+                                    row.ConstantItem(150, Unit.Point)
+                                       .Text(label)
+                                       .SemiBold();
 
-                    document.Save(outputStream);
-                } 
-                pdfBytes = outputStream.ToArray();
-            } 
+                                    row.RelativeItem()
+                                       .Text(isi ?? "-");
+                                });
+                                col.Spacing(5, Unit.Point); 
+                            }
+
+                            // --- DETAIL REQUEST ---
+                            BuatBaris("SourceList NO:", data.SourceListNumber);
+                            BuatBaris("Requestor:", data.Requestor);
+                            BuatBaris("BAU No. / Part Number:", data.BAUNumber);
+                            BuatBaris("Part Description:", data.PartDescription);
+
+                            col.Spacing(20, Unit.Point); 
+
+                            // --- DETAIL SUPPLIER ---
+                            BuatBaris("Supplier Name:", data.SupplierName);
+                            BuatBaris("Vendor Code:", data.VendorCode);
+                            BuatBaris("Supplier Status:", data.SupplierStatus);
+                            BuatBaris("Sourcelist Status:", data.SourceListStatus);
+                            BuatBaris("CMS# of final CRB:", data.CMSFinalCRB);
+
+                            col.Spacing(20, Unit.Point);
+
+                            // --- DETAIL APPROVAL ---
+                            BuatBaris("Approver Name:", data.ApproverName);
+                            BuatBaris("Approver Email:", data.ApproverEmail);
+                            BuatBaris("Approver Status:", data.ApproverStatus);
+                            BuatBaris("Validity Period:", data.ValidityPeriod);
+
+                            col.Spacing(20, Unit.Point);
+
+                            BuatBaris("Reason of Submission:", data.ReasonSubmission);
+                            BuatBaris("Remarks:", data.Remarks);
+                        });
+
+                 
+                    page.Footer()
+                        .AlignRight()
+                        .Text(text =>
+                        {
+                            text.Span("Generated on: ");
+                            text.Span(DateTime.Now.ToString("dd-MMM-yyyy HH:mm"));
+                        });
+                });
+            });
+
+            byte[] pdfBytes = document.GeneratePdf();
+            string fileName = $"{id}.pdf";
+
             return File(pdfBytes, "application/pdf", fileName);
         }
 

@@ -28,7 +28,8 @@
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.9.0" />
     <PackageReference Include="Microsoft.SharePointOnline.CSOM" Version="16.1.25912.12000" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.0" />
-    <PackageReference Include="PDFsharp-GDI" Version="6.2.2" />
+    <PackageReference Include="PDFsharp" Version="6.2.2" />
+    <PackageReference Include="QuestPDF" Version="2025.7.3" />
     <PackageReference Include="ReportViewerCore.NETCore" Version="15.1.26" />
     <PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
     <PackageReference Include="System.DirectoryServices.AccountManagement" Version="8.0.0" />
