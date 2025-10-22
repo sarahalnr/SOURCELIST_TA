@@ -11,92 +11,105 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 40px;
-            font-size: 10pt;
-            line-height: 1.4;
+            margin: 30px;
+            font-size: 9pt; 
+            line-height: 1.3; 
+            color: #222;
         }
-        .main-details-table {
+
+        .layout-table {
             width: 100%;
-            margin-bottom: 20px;
+            border-collapse: collapse;
+            margin-bottom: 15px; 
         }
 
-            .main-details-table td {
-                vertical-align: top; 
-                padding-bottom: 5px; 
+            .layout-table td {
+                vertical-align: top;
+                padding: 2px 0; 
             }
 
-            .main-details-table .label {
+            .layout-table .label {
                 font-weight: bold;
-                width: 140px;
-                padding-right: 10px;
+                width: 120px;
+                padding-right: 8px;
+                color: #444;
             }
 
-        .section {
-            margin-top: 25px;
-        }
+            .layout-table .value {
+            }
 
         .section-title {
-            font-size: 11pt; 
+            font-size: 10pt; 
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-top: 20px; 
+            margin-bottom: 5px;
+            color: #000;
         }
-
-        /* Reason box tanpa border/background */
+/
         .reason-box {
-            padding: 0;
-            min-height: 40px;
+            padding: 8px; 
+            min-height: 30px;
+            background-color: #f8f8f8;
+            border: 1px solid #e0e0e0; 
+            border-radius: 2px;
+            margin-top: 3px;
         }
 
-        /* Styling tabel approver */
-        table {
+        .approver-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 5px;
         }
 
-        th, td {
-            border-bottom: 1px solid #ddd;
-            padding: 6px 8px; 
-            text-align: left;
-        }
+            .approver-table th,
+            .approver-table td {
+                border: none; 
+                padding: 5px 4px; 
+                text-align: left;
+                vertical-align: top;
+            }
 
-        th {
-            border-bottom-width: 2px;
-            border-bottom-color: #000;
-            font-weight: bold;
-            font-size: 10pt;
-        }
+            .approver-table th {
+                font-weight: bold;
+                font-size: 9pt; 
+                color: #222;
+                border-bottom: 1px solid #555; 
+                padding-bottom: 4px;
+            }
 
+        
         .footer {
             text-align: right;
-            font-size: 9pt;
+            font-size: 8pt; 
             font-style: italic;
-            margin-top: 40px;
-            color: #555; /* Warna abu-abu */
+            margin-top: 30px;
+            color: #666;
+            border-top: 1px solid #f0f0f0; 
+            padding-top: 8px;
         }
     </style>
 </head>
 <body>
 
-    <table class="main-details-table" style="margin-bottom: 20px;">
+    <table class="layout-table" style="margin-bottom: 15px;">
         <tr>
-            <td class="label" style="font-size: 11pt;">SourceList NO:</td>
-            <td class="value" style="font-size: 11pt;">@Model.SourceListNumber</td>
+            <td class="label" style="font-size: 10pt; width: 100px;">SourceList NO:</td>
+            <td class="value" style="font-size: 10pt;">@Model.SourceListNumber</td>
         </tr>
     </table>
 
-    <table class="main-details-table">
+    <table class="layout-table">
         <tr>
-            <td style="width: 50%;">
-                <table>
+            <td style="width: 55%; padding-right: 15px;">
+                <table style="width: 100%;">
                     <tr><td class="label">Requestor:</td><td class="value">@Model.Requestor</td></tr>
                     <tr><td class="label">BAU No. / Part:</td><td class="value">@Model.BAUNumber</td></tr>
                     <tr><td class="label">Part Description:</td><td class="value">@Model.PartDescription</td></tr>
                     <tr><td class="label">Supplier Name:</td><td class="value">@Model.SupplierName</td></tr>
                 </table>
             </td>
-            <td style="width: 50%;">
-                <table>
+            <td style="width: 45%; padding-left: 15px;">
+                <table style="width: 100%;">
                     <tr><td class="label">Vendor Code:</td><td class="value">@Model.VendorCode</td></tr>
                     <tr><td class="label">Supplier Status:</td><td class="value">@Model.SupplierStatus</td></tr>
                     <tr><td class="label">Sourcelist Status:</td><td class="value">@Model.SourceListStatus</td></tr>
@@ -106,37 +119,33 @@
         </tr>
     </table>
 
-    <div class="section">
-        <div class="section-title">Reason of Submission</div>
-        <div class="reason-box">@Model.ReasonSubmission</div>
-    </div>
+    <div class="section-title">Reason of Submission</div>
+    <div class="reason-box">@Model.ReasonSubmission</div>
 
-    <div class="section">
-        <div class="section-title">Approver</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Approver Name</th>
-                    <th>Approver Email</th>
-                    <th>Approver Status</th>
-                    <th>Validity Period</th>
-                    <th>Remarks</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>@Model.ApproverName</td>
-                    <td>@Model.ApproverEmail</td>
-                    <td>@Model.ApproverStatus</td>
-                    <td>@Model.ValidityPeriod</td>
-                    <td>@Model.Remarks</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+    <div class="section-title">Approver</div>
+    <table class="approver-table">
+        <thead>
+            <tr>
+                <th>Approver Name</th>
+                <th>Approver Email</th>
+                <th>Approver Status</th>
+                <th>Validity Period</th>
+                <th>Remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>@Model.ApproverName</td>
+                <td>@Model.ApproverEmail</td>
+                <td>@Model.ApproverStatus</td>
+                <td>@Model.ValidityPeriod</td>
+                <td>@Model.Remarks</td>
+            </tr>
+        </tbody>
+    </table>
 
     <div class="footer">
-        Generated on: @DateTime.Now.ToString("dd-MMM-yyyy HH:mm")
+        Date: @DateTime.Now.ToString("dd-MMM-yyyy HH:mm")
     </div>
 
 </body>

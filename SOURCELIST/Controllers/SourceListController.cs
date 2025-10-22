@@ -492,11 +492,12 @@ namespace sourcelist.Controllers
 
                 var pdfBytes = await page.PdfDataAsync(new PdfOptions
                 {
-                    Format = PaperFormat.A4,
+                    Height = "140mm",         
+                                            
                     PrintBackground = true,
                     MarginOptions = new MarginOptions
                     {
-                        Top = "40px",
+                        Top = "40px", 
                         Bottom = "40px",
                         Left = "40px",
                         Right = "40px"
