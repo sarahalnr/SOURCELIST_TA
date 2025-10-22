@@ -455,7 +455,6 @@ namespace sourcelist.Controllers
             return Json(new { kodeVendor = supplier.KodeVendor });
         }
 
-        // GET UNTUK PDF
         [HttpGet]
         public async Task<IActionResult> ReportPdf(string id)
         {
@@ -464,11 +463,9 @@ namespace sourcelist.Controllers
             {
                 return NotFound();
             }
-            // Kembalikan View-nya sebagai halaman HTML biasa
             return View("ReportPdf", data);
         }
 
-        // UNTUK PDF
 
         [HttpGet]
         public async Task<IActionResult> DownloadSourceListPdf(string id)
