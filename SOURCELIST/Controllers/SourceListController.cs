@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Elements;
-using QuestPDF.Fluent;
-using QuestPDF.Helpers;
-using QuestPDF.Infrastructure;
+//using QuestPDF.Fluent;
+//using QuestPDF.Helpers;
+//using QuestPDF.Infrastructure;
+using PuppeteerSharp;
+using PuppeteerSharp.Media;
 using sourcelist.Data;
 using sourcelist.DTOs;
 using sourcelist.Helper;
@@ -453,94 +455,61 @@ namespace sourcelist.Controllers
             return Json(new { kodeVendor = supplier.KodeVendor });
         }
 
-
+        // GET UNTUK PDF
         [HttpGet]
-        public async Task<IActionResult> DownloadSourceListPdf(string id)
+        public async Task<IActionResult> ReportPdf(string id)
         {
             var data = await _sourceListService.GetSourceListDetailAsync(id);
             if (data == null)
             {
-                return NotFound($"Source List with number {id} not found.");
+                return NotFound();
             }
-            QuestPDF.Settings.License = LicenseType.Community;
+            // Kembalikan View-nya sebagai halaman HTML biasa
+            return View("ReportPdf", data);
+        }
 
-            var document = Document.Create(container =>
-            {
-                container.Page(page =>
-                {
-                    page.Size(PageSizes.A4);
-                    page.Margin(40, Unit.Point);
+        // UNTUK PDF
 
-                    // --- HEADER (Judul) ---
-                    page.Header()
-                        .AlignCenter()
-                        .Text("Source List Report")
-                        .SemiBold().FontSize(16);
-
-                    // --- CONTENT (Isi Laporan) ---
-                  
-                    page.Content()
-                        .PaddingVertical(1, Unit.Centimetre)
-                        .Column(col => 
-                        {
-                            void BuatBaris(string label, string isi)
-                            {
-                                col.Item().Row(row =>
-                                {
-                                    row.ConstantItem(150, Unit.Point)
-                                       .Text(label)
-                                       .SemiBold();
-
-                                    row.RelativeItem()
-                                       .Text(isi ?? "-");
-                                });
-                                col.Spacing(5, Unit.Point); 
-                            }
-
-                            // --- DETAIL REQUEST ---
-                            BuatBaris("SourceList NO:", data.SourceListNumber);
-                            BuatBaris("Requestor:", data.Requestor);
-                            BuatBaris("BAU No. / Part Number:", data.BAUNumber);
-                            BuatBaris("Part Description:", data.PartDescription);
-
-                            col.Spacing(20, Unit.Point); 
-
-                            // --- DETAIL SUPPLIER ---
-                            BuatBaris("Supplier Name:", data.SupplierName);
-                            BuatBaris("Vendor Code:", data.VendorCode);
-                            BuatBaris("Supplier Status:", data.SupplierStatus);
-                            BuatBaris("Sourcelist Status:", data.SourceListStatus);
-                            BuatBaris("CMS# of final CRB:", data.CMSFinalCRB);
-
-                            col.Spacing(20, Unit.Point);
-
-                            // --- DETAIL APPROVAL ---
-                            BuatBaris("Approver Name:", data.ApproverName);
-                            BuatBaris("Approver Email:", data.ApproverEmail);
-                            BuatBaris("Approver Status:", data.ApproverStatus);
-                            BuatBaris("Validity Period:", data.ValidityPeriod);
-
-                            col.Spacing(20, Unit.Point);
-
-                            BuatBaris("Reason of Submission:", data.ReasonSubmission);
-                            BuatBaris("Remarks:", data.Remarks);
-                        });
-
-                 
-                    page.Footer()
-                        .AlignRight()
-                        .Text(text =>
-                        {
-                            text.Span("Generated on: ");
-                            text.Span(DateTime.Now.ToString("dd-MMM-yyyy HH:mm"));
-                        });
-                });
-            });
-
-            byte[] pdfBytes = document.GeneratePdf();
+        [HttpGet]
+        public async Task<IActionResult> DownloadSourceListPdf(string id)
+        {
             string fileName = $"{id}.pdf";
 
-            return File(pdfBytes, "application/pdf", fileName);
+            
+            string reportUrl = $"{Request.Scheme}://{Request.Host}{Url.Action("ReportPdf", "SourceList", new { id = id })}";
+
+            try
+            {
+                await new BrowserFetcher().DownloadAsync();
+
+                await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions
+                {
+                    Headless = true,
+                    Args = new[] { "--no-sandbox" } 
+                });
+                await using var page = await browser.NewPageAsync();
+                await page.GoToAsync(reportUrl, WaitUntilNavigation.Networkidle0);
+
+                var pdfBytes = await page.PdfDataAsync(new PdfOptions
+                {
+                    Format = PaperFormat.A4,
+                    PrintBackground = true,
+                    MarginOptions = new MarginOptions
+                    {
+                        Top = "40px",
+                        Bottom = "40px",
+                        Left = "40px",
+                        Right = "40px"
+                    }
+                });
+                await browser.CloseAsync();
+                return File(pdfBytes, "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+                // Tangani error 
+                return StatusCode(500, $"Error generating PDF. Pastikan Anda menjalankan aplikasi. Error: {ex.Message}");
+            }
         }
 
         //[HttpGet]

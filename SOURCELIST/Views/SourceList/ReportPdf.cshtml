@@ -1,0 +1,143 @@
+﻿@model sourcelist.Models.ViewModels.SourceListDetailViewModel
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Source List Report - @Model.SourceListNumber</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            font-size: 10pt;
+            line-height: 1.4;
+        }
+        .main-details-table {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+            .main-details-table td {
+                vertical-align: top; 
+                padding-bottom: 5px; 
+            }
+
+            .main-details-table .label {
+                font-weight: bold;
+                width: 140px;
+                padding-right: 10px;
+            }
+
+        .section {
+            margin-top: 25px;
+        }
+
+        .section-title {
+            font-size: 11pt; 
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        /* Reason box tanpa border/background */
+        .reason-box {
+            padding: 0;
+            min-height: 40px;
+        }
+
+        /* Styling tabel approver */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+
+        th, td {
+            border-bottom: 1px solid #ddd;
+            padding: 6px 8px; 
+            text-align: left;
+        }
+
+        th {
+            border-bottom-width: 2px;
+            border-bottom-color: #000;
+            font-weight: bold;
+            font-size: 10pt;
+        }
+
+        .footer {
+            text-align: right;
+            font-size: 9pt;
+            font-style: italic;
+            margin-top: 40px;
+            color: #555; /* Warna abu-abu */
+        }
+    </style>
+</head>
+<body>
+
+    <table class="main-details-table" style="margin-bottom: 20px;">
+        <tr>
+            <td class="label" style="font-size: 11pt;">SourceList NO:</td>
+            <td class="value" style="font-size: 11pt;">@Model.SourceListNumber</td>
+        </tr>
+    </table>
+
+    <table class="main-details-table">
+        <tr>
+            <td style="width: 50%;">
+                <table>
+                    <tr><td class="label">Requestor:</td><td class="value">@Model.Requestor</td></tr>
+                    <tr><td class="label">BAU No. / Part:</td><td class="value">@Model.BAUNumber</td></tr>
+                    <tr><td class="label">Part Description:</td><td class="value">@Model.PartDescription</td></tr>
+                    <tr><td class="label">Supplier Name:</td><td class="value">@Model.SupplierName</td></tr>
+                </table>
+            </td>
+            <td style="width: 50%;">
+                <table>
+                    <tr><td class="label">Vendor Code:</td><td class="value">@Model.VendorCode</td></tr>
+                    <tr><td class="label">Supplier Status:</td><td class="value">@Model.SupplierStatus</td></tr>
+                    <tr><td class="label">Sourcelist Status:</td><td class="value">@Model.SourceListStatus</td></tr>
+                    <tr><td class="label">CMS# of final CRB:</td><td class="value">@Model.CMSFinalCRB</td></tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <div class="section">
+        <div class="section-title">Reason of Submission</div>
+        <div class="reason-box">@Model.ReasonSubmission</div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Approver</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Approver Name</th>
+                    <th>Approver Email</th>
+                    <th>Approver Status</th>
+                    <th>Validity Period</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>@Model.ApproverName</td>
+                    <td>@Model.ApproverEmail</td>
+                    <td>@Model.ApproverStatus</td>
+                    <td>@Model.ValidityPeriod</td>
+                    <td>@Model.Remarks</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        Generated on: @DateTime.Now.ToString("dd-MMM-yyyy HH:mm")
+    </div>
+
+</body>
+</html>
