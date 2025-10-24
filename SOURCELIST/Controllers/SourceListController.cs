@@ -3,9 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Elements;
-//using QuestPDF.Fluent;
-//using QuestPDF.Helpers;
-//using QuestPDF.Infrastructure;
 using PuppeteerSharp;
 using PuppeteerSharp.Media;
 using sourcelist.Data;
@@ -13,7 +10,7 @@ using sourcelist.DTOs;
 using sourcelist.Helper;
 using sourcelist.Models;
 using sourcelist.Models.ViewModels;
-using sourcelist.Services;
+using sourcelist.Services; 
 using System;
 using System.IO;
 using System.Linq;
@@ -27,13 +24,19 @@ namespace sourcelist.Controllers
     {
         private readonly ISourceListService _sourceListService;
         private readonly IWebHostEnvironment _webHostEnvironment;
-        private readonly ApplicationDbContext _context; 
+        private readonly ApplicationDbContext _context;
+        private readonly IEmailService _emailService; 
 
-        public SourceListController(ISourceListService sourceListService, IWebHostEnvironment webHostEnvironment, ApplicationDbContext context)
+       
+        public SourceListController(ISourceListService sourceListService,
+                                    IWebHostEnvironment webHostEnvironment,
+                                    ApplicationDbContext context,
+                                    IEmailService emailService)
         {
             _sourceListService = sourceListService;
             _webHostEnvironment = webHostEnvironment;
-            _context = context; 
+            _context = context;
+            _emailService = emailService;
         }
 
         public IActionResult Create()
@@ -45,6 +48,7 @@ namespace sourcelist.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SourceListCreateViewModel model)
         {
+       
             if (!User.Identity.IsAuthenticated)
             {
                 return Unauthorized(new { success = false, message = "Sesi Anda telah berakhir. Silakan login kembali." });
@@ -60,7 +64,7 @@ namespace sourcelist.Controllers
             model.RequestorEmail = emailClaim;
             model.RequestorId = int.Parse(userIdClaim);
 
-            // Langkah validasi dan pengisian data 
+      
             try
             {
                 var approver = await _context.Users.FirstOrDefaultAsync(u => u.Role == "Approver");
@@ -85,23 +89,23 @@ namespace sourcelist.Controllers
                         var newSupplier = new Supplier
                         {
                             NamaSupplier = model.SupplierName,
-                            KodeVendor = model.VendorCode, 
-                            EmailSupplier = "not.set@email.com", 
-                            Status = "Aktif" 
+                            KodeVendor = model.VendorCode,
+                            EmailSupplier = "not.set@email.com",
+                            Status = "Aktif"
                         };
                         _context.Suppliers.Add(newSupplier);
                         await _context.SaveChangesAsync();
 
-         
+
                         model.SupplierId = newSupplier.ID_Supplier;
                     }
                     else
                     {
-                        
+
                         model.SupplierId = existingSupplier.ID_Supplier;
                     }
                 }
-                else 
+                else
                 {
                     var supplier = await _context.Suppliers.FindAsync(model.SupplierId);
                     if (supplier == null)
@@ -116,7 +120,6 @@ namespace sourcelist.Controllers
                 return StatusCode(500, new { success = false, message = "Gagal mengambil atau menyimpan data master: " + ex.Message });
             }
 
-            // Validasi file attachment
             if (model.SupplierStatus == "New" && model.AssessmentAttachmentFile == null)
             {
                 ModelState.AddModelError("AssessmentAttachmentFile", "Supplier Assesment Form wajib diisi untuk supplier baru.");
@@ -126,14 +129,12 @@ namespace sourcelist.Controllers
                 ModelState.AddModelError("AttachedEndorsementFile", "Supplier Endorsement List wajib diisi untuk supplier transfer.");
             }
 
-            // Cek ModelState SETELAH semua data model terisi
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
                 return BadRequest(new { success = false, message = "Data tidak valid: " + string.Join(", ", errors) });
             }
 
-            // Proses penyimpanan ke service 
             try
             {
                 string assessmentFileName = (model.AssessmentAttachmentFile != null) ? Path.GetFileName(model.AssessmentAttachmentFile.FileName) : null;
@@ -145,7 +146,6 @@ namespace sourcelist.Controllers
                 {
                     return StatusCode(500, new { success = false, message = "Gagal membuat data. Stored Procedure tidak mengembalikan ID baru." });
                 }
-
                 string finalFolder = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", newSourceListId);
                 if (!Directory.Exists(finalFolder))
                 {
@@ -169,6 +169,69 @@ namespace sourcelist.Controllers
                     }
                 }
 
+                //  KIRIM EMAIL SUBMISSION (Mirip SP SOURCELIST_SEND_MAIL_SUBMISSION) 
+                try
+                {
+                    string to = model.ApproverEmail;
+                    string subject = $"New Source List Request for Approval: {newSourceListId}";
+                    string linkUrl = $"{Request.Scheme}://{Request.Host}{Url.Action("IndexForApprove", "SourceList")}";
+
+                   
+                    string body = $@"
+                    <html>
+                    <head>
+                        <style>
+                            body {{ font-family: Arial, sans-serif; color: #222e3c; font-size: 14px; }}
+                            h3 {{ margin-bottom: 8px; color: #345E37; }}
+                            table {{ border-collapse: collapse; margin-top: 10px; font-size: 14px; }}
+                            td {{ padding: 6px 12px; border: 1px solid #e0e0e0; }}
+                            .label {{ background: #A3D65C; color: #345E37; font-weight: bold; width: 180px; }}
+                            .footer {{ font-size: 12px; color: #888; margin-top: 16px; }}
+                            .button-container {{ margin-top: 20px; }}
+                            .button {{
+                                background-color: #345E37;
+                                color: white;
+                                padding: 10px 20px;
+                                text-decoration: none;
+                                border-radius: 5px;
+                                font-weight: bold;
+                                display: inline-block;
+                            }}
+                        </style>
+                    </head>
+                    <body>
+                        <h3>New Source List Request for Approval</h3>
+                        <p>Dear {model.ApproverName ?? "Approver"},</p>
+                        <p>A new source list request has been submitted and requires your approval.</p>
+                        <table>
+                            <tr><td class='label'>Source List No.</td><td>{newSourceListId}</td></tr>
+                            <tr><td class='label'>Requestor</td><td>{model.Requestor}</td></tr>
+                            <tr><td class='label'>Part Number</td><td>{model.BAUNumber}</td></tr>
+                            <tr><td class='label'>Part Description</td><td>{model.PartDescription}</td></tr>
+                            <tr><td class='label'>Supplier</td><td>{model.SupplierName}</td></tr>
+                            <tr><td class='label'>Reason of Submission</td><td>{model.ReasonSubmission}</td></tr>
+                        </table>
+                        <br/>
+                        <p>Please check the details in the SOURCE LIST System Application.<br/> 
+                        <div class='button-container'>
+                            <a href='{linkUrl}' class='button'>Open Source List System</a>
+                        </div>
+                        
+                        <br><p>Thank you,</p><p><b>Source List System</b></p>
+                        <div class='footer'>This is an automatic email from <b>SOURCELIST System</b>. Do not reply to this email.</div> 
+                    </body>
+                    </html>";
+
+                    // Panggil service email
+                    await _emailService.SendEmailAsync(to, subject, body);
+                }
+                catch (Exception ex_email)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Gagal kirim email submission: {ex_email.Message}");
+                   
+                }
+                // --- AKHIR KODE EMAIL ---
+
                 return Ok(new { success = true, message = "Data berhasil disimpan!", newId = newSourceListId });
             }
             catch (Exception ex)
@@ -176,23 +239,22 @@ namespace sourcelist.Controllers
                 return StatusCode(500, new { success = false, message = "Terjadi kesalahan saat menyimpan data: " + (ex.InnerException?.Message ?? ex.Message) });
             }
         }
-
         public async Task<IActionResult> IndexMySourceList(
-          int page = 1,
-          int pageSize = 10,
-          string sortColumn = "SubmitDate",
-          string sortDirection = "DESC",
-          string searchTerm = null,
-          bool isAjax = false)
+         int page = 1,
+         int pageSize = 10,
+         string sortColumn = "SubmitDate",
+         string sortDirection = "DESC",
+         string searchTerm = null,
+         bool isAjax = false)
         {
-            // untuk cek login
+            // ... (kode Anda tidak berubah) ...
             if (!User.Identity.IsAuthenticated)
             {
                 if (isAjax)
                 {
                     return Unauthorized(new { message = "Sesi Anda telah berakhir. Silakan login kembali." });
                 }
-                return RedirectToAction("Login", "Account"); 
+                return RedirectToAction("Login", "Account");
             }
 
             var emailClaim = User.FindFirst(ClaimTypes.Email)?.Value;
@@ -217,6 +279,7 @@ namespace sourcelist.Controllers
 
             return View(result);
         }
+
 
         [HttpGet]
         public async Task<IActionResult> IndexForApprove(
@@ -259,12 +322,13 @@ namespace sourcelist.Controllers
             return View(result);
         }
 
+
         [HttpGet]
         public async Task<IActionResult> Detail(string id, string source, int page = 1)
         {
             if (!User.Identity.IsAuthenticated)
             {
-                
+
                 TempData["SweetAlertMessage"] = "Session not found. Please log in.";
                 TempData["SweetAlertType"] = "error";
                 return RedirectToAction("Login", "Account");
@@ -288,12 +352,12 @@ namespace sourcelist.Controllers
             }
 
             bool isFromAllowedPage = "Approve".Equals(source, StringComparison.OrdinalIgnoreCase) ||
-                                     "All".Equals(source, StringComparison.OrdinalIgnoreCase) ||
-                                     "AllSourceList".Equals(source, StringComparison.OrdinalIgnoreCase);
+                                         "All".Equals(source, StringComparison.OrdinalIgnoreCase) ||
+                                         "AllSourceList".Equals(source, StringComparison.OrdinalIgnoreCase);
 
             bool isPending = "PENDING".Equals(viewModel.ApproverStatus, StringComparison.OrdinalIgnoreCase);
 
-          
+
             bool isCurrentUserTheApprover = emailClaim.Equals(viewModel.ApproverEmail, StringComparison.OrdinalIgnoreCase);
 
             ViewBag.ShowApprovalButtons = isFromAllowedPage && isPending && isCurrentUserTheApprover;
@@ -325,6 +389,73 @@ namespace sourcelist.Controllers
             try
             {
                 await _sourceListService.ApproveSourceListAsync(model);
+
+                // KIRIM EMAIL APPROVE (Mirip SP SOURCELIST_SEND_MAIL_APPROVE) ---
+                try
+                {
+                    // Ambil detail data untuk dikirim ke email
+                    var data = await _sourceListService.GetSourceListDetailAsync(model.SourceListNumber);
+                    if (data != null)
+                    {
+                        string to = data.RequestorEmail;
+                        string subject = $"[Source List] APPROVED - No: {model.SourceListNumber}";
+                        string linkUrl = $"{Request.Scheme}://{Request.Host}{Url.Action("Detail", "SourceList", new { id = model.SourceListNumber })}";
+
+                        string body = $@"
+                        <html>
+                        <head>
+                            <style>
+                                body {{ font-family: Arial, sans-serif; color: #222e3c; font-size: 14px; }}
+                                h3 {{ margin-bottom: 8px; color: #155724; }}
+                                .badge-approve {{ color: #fff; background: #28a745; border-radius: 4px; padding: 2px 10px; font-weight: bold; }}
+                                table {{ border-collapse: collapse; margin-top: 10px; font-size: 14px; }}
+                                td {{ padding: 6px 12px; border: 1px solid #e0e0e0; }}
+                                .label {{ background: #A3D65C; color: #345E37; font-weight: bold; width: 180px; }}
+                                .footer {{ font-size: 12px; color: #888; margin-top: 16px; }}
+                                .button-container {{ margin-top: 20px; }}
+                                .button {{
+                                    background-color: #345E37;
+                                    color: white;
+                                    padding: 10px 20px;
+                                    text-decoration: none;
+                                    border-radius: 5px;
+                                    font-weight: bold;
+                                    display: inline-block;
+                                }}
+                            </style>
+                        </head>
+                        <body>
+                            <h3>Source List Approved Notification</h3>
+                            <p>Dear {data.Requestor},</p>
+                            <p>The following source list has been <span class='badge-approve'>APPROVED</span> by <b>{data.ApproverName}</b>.</p>
+                            <table>
+                                <tr><td class='label'>Source List No.</td><td>{model.SourceListNumber}</td></tr>
+                                <tr><td class='label'>Requestor</td><td>{data.Requestor}</td></tr>
+                                <tr><td class='label'>Part Number</td><td>{data.BAUNumber}</td></tr>
+                                <tr><td class='label'>Part Description</td><td>{data.PartDescription}</td></tr>
+                                <tr><td class='label'>Supplier</td><td>{data.SupplierName}</td></tr>
+                                <tr><td class='label'>Reason of Submission</td><td>{data.ReasonSubmission}</td></tr>
+                                <tr><td class='label'>Approver Remark</td><td>{model.Remarks ?? "-"}</td></tr>
+                            </table>
+                            <br/>
+                            <p>Please check the details in the Source List System Application.<br/> 
+                            <div class='button-container'>
+                                <a href='{linkUrl}' class='button'>Open Source List Detail</a>
+                            </div>
+                            <br><p>Thank you,</p><p><b>Source List System</b></p>
+                            <div class='footer'>This is an automatic email from <b>SOURCELIST System</b>. Do not reply to this email.</div> 
+                        </body>
+                        </html>";
+
+                        await _emailService.SendEmailAsync(to, subject, body);
+                    }
+                }
+                catch (Exception ex_email)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Gagal kirim email approval: {ex_email.Message}");
+                }
+                // --- AKHIR KODE EMAIL ---
+
                 return Ok(new { success = true, message = "SourceList has been approved." });
             }
             catch (Exception ex)
@@ -343,6 +474,73 @@ namespace sourcelist.Controllers
             try
             {
                 await _sourceListService.RejectSourceListAsync(model);
+
+                // KIRIM EMAIL REJECT (Mirip SP SOURCELIST_SEND_MAIL_REJECT)
+                try
+                {
+                    // Ambil detail data untuk dikirim ke email
+                    var data = await _sourceListService.GetSourceListDetailAsync(model.SourceListNumber);
+                    if (data != null)
+                    {
+                        string to = data.RequestorEmail;
+                        string subject = $"[Source List] REJECTED - No: {model.SourceListNumber}";
+                        string linkUrl = $"{Request.Scheme}://{Request.Host}{Url.Action("Detail", "SourceList", new { id = model.SourceListNumber })}";
+
+                        string body = $@"
+                        <html>
+                        <head>
+                            <style>
+                                body {{ font-family: Arial, sans-serif; color: #222e3c; font-size: 14px; }}
+                                h3 {{ margin-bottom: 8px; color: #a94442; }}
+                                .badge-reject {{ color: #fff; background: #dc3545; border-radius: 4px; padding: 2px 10px; font-weight: bold; }}
+                                table {{ border-collapse: collapse; margin-top: 10px; font-size: 14px; }}
+                                td {{ padding: 6px 12px; border: 1px solid #e0e0e0; }}
+                                .label {{ background: #A3D65C; color: #345E37; font-weight: bold; width: 180px; }}
+                                .footer {{ font-size: 12px; color: #888; margin-top: 16px; }}
+                                .button-container {{ margin-top: 20px; }}
+                                .button {{
+                                    background-color: #345E37;
+                                    color: white;
+                                    padding: 10px 20px;
+                                    text-decoration: none;
+                                    border-radius: 5px;
+                                    font-weight: bold;
+                                    display: inline-block;
+                                }}
+                            </style>
+                        </head>
+                        <body>
+                            <h3>Source List Rejected Notification</h3>
+                            <p>Dear {data.Requestor},</p>
+                            <p>The following source list has been <span class='badge-reject'>REJECTED</span> by <b>{data.ApproverName}</b>.</p>
+                            <table>
+                                <tr><td class='label'>Source List No.</td><td>{model.SourceListNumber}</td></tr>
+                                <tr><td class='label'>Requestor</td><td>{data.Requestor}</td></tr>
+                                <tr><td class='label'>Part Number</td><td>{data.BAUNumber}</td></tr>
+                                <tr><td class='label'>Part Description</td><td>{data.PartDescription}</td></tr>
+                                <tr><td class='label'>Supplier</td><td>{data.SupplierName}</td></tr>
+                                <tr><td class='label'>Reason of Submission</td><td>{data.ReasonSubmission}</td></tr>
+                                <tr><td class='label'>Reject Remark</td><td>{model.Remarks ?? "-"}</td></tr>
+                            </table>
+                            <br/>
+                            <p>Please check the details and revise your submission in the Source List System Application.<br/> 
+                            <div class='button-container'>
+                                <a href='{linkUrl}' class='button'>Open Source List Detail</a>
+                            </div>
+                            <br><p>Thank you,</p><p><b>Source List System</b></p>
+                            <div class='footer'>This is an automatic email from <b>SOURCELIST System</b>. Do not reply to this email.</div> 
+                        </body>
+                        </html>";
+
+                        await _emailService.SendEmailAsync(to, subject, body);
+                    }
+                }
+                catch (Exception ex_email)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Gagal kirim email rejection: {ex_email.Message}");
+                }
+                // --- AKHIR KODE EMAIL ---
+
                 return Ok(new { success = true, message = "SourceList has been rejected." });
             }
             catch (Exception ex)
@@ -417,7 +615,7 @@ namespace sourcelist.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetSuppliers(string term) 
+        public async Task<IActionResult> GetSuppliers(string term)
         {
             try
             {
@@ -447,7 +645,7 @@ namespace sourcelist.Controllers
         [HttpGet]
         public async Task<JsonResult> GetSupplierDetail(int id)
         {
-            var supplier = await _context.Suppliers.FindAsync(id); 
+            var supplier = await _context.Suppliers.FindAsync(id);
             if (supplier == null)
             {
                 return Json(null);
@@ -472,7 +670,7 @@ namespace sourcelist.Controllers
         {
             string fileName = $"{id}.pdf";
 
-            
+
             string reportUrl = $"{Request.Scheme}://{Request.Host}{Url.Action("ReportPdf", "SourceList", new { id = id })}";
 
             try
@@ -482,19 +680,18 @@ namespace sourcelist.Controllers
                 await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions
                 {
                     Headless = true,
-                    Args = new[] { "--no-sandbox" } 
+                    Args = new[] { "--no-sandbox" }
                 });
                 await using var page = await browser.NewPageAsync();
                 await page.GoToAsync(reportUrl, WaitUntilNavigation.Networkidle0);
 
                 var pdfBytes = await page.PdfDataAsync(new PdfOptions
                 {
-                    Height = "140mm",         
-                                            
+                    Height = "140mm",
                     PrintBackground = true,
                     MarginOptions = new MarginOptions
                     {
-                        Top = "40px", 
+                        Top = "40px",
                         Bottom = "40px",
                         Left = "40px",
                         Right = "40px"
@@ -509,22 +706,5 @@ namespace sourcelist.Controllers
                 return StatusCode(500, $"Error generating PDF. Pastikan Anda menjalankan aplikasi. Error: {ex.Message}");
             }
         }
-
-        //[HttpGet]
-        //public JsonResult SearchApprovers(string term)
-        //{
-        //    var users = _ldapService.GetAllUsers(term);
-        //    var result = users.Select(u => new
-        //    {
-        //        id = u.UserName,
-        //        text = $"{u.DisplayName}",
-        //        email = u.Email,
-        //        desc = u.BadgeNo
-        //    });
-        //    return Json(result);
-        //}
-
-
     }
 }
-    

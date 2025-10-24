@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.Extensions.FileSystemGlobbing.Internal.Patterns;
@@ -34,6 +33,10 @@ builder.Services.AddScoped<ISupplierService, SupplierService>();
 
 builder.Services.Configure<LDAPOptions>(builder.Configuration.GetSection("LDAP"));
 builder.Services.AddScoped<ILDAPService, LDAPService>();
+
+//SMTP EMAIL
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
+builder.Services.AddTransient<IEmailService, EmailService>();
 
 builder.Services.AddSession(options =>
 {

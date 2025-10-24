@@ -228,7 +228,7 @@
 
                     $('#supplierNameDropdown').select2({
                         theme: 'bootstrap-5',
-                        placeholder: "-- Pilih Supplier --",
+                        placeholder: "-- Choose Supplier --",
                         allowClear: true,
                         ajax: {
                             url: '@Url.Action("GetSuppliers", "SourceList")', 
@@ -239,7 +239,7 @@
                         }
                     });
                 } else {
-                    supplierContainer.html('<input type="text" class="form-control" disabled placeholder="Pilih Supplier Status terlebih dahulu">');
+                    supplierContainer.html('<input type="text" class="form-control" disabled placeholder="Please select a Supplier Status first."">');
                     vendorCodeInput.prop('disabled', true).val('');
                 }
             }
