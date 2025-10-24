@@ -205,6 +205,7 @@ namespace sourcelist.Services
             return new PagedResult<SourceListDTO> { Data = dataList, TotalRows = totalRows, TotalPages = (int)Math.Ceiling((double)totalRows / pageSize) };
         }
 
+
         public async Task<SourceListDetailViewModel> GetSourceListDetailAsync(string sourceListNumber)
         {
             SourceListDetailViewModel viewModel = null;
@@ -220,36 +221,40 @@ namespace sourcelist.Services
                     await connection.OpenAsync();
                     using (var reader = await command.ExecuteReaderAsync())
                     {
-                        if (await reader.ReadAsync()) 
+                        if (await reader.ReadAsync())
                         {
                             viewModel = new SourceListDetailViewModel
                             {
                                 SourceListNumber = reader["SourceListNumber"].ToString(),
                                 Requestor = reader["Requestor"].ToString(),
+
+                                RequestorEmail = reader["RequestorEmail"]?.ToString(), 
+
                                 BAUNumber = reader["BAUNumber"].ToString(),
                                 PartDescription = reader["PartDescription"].ToString(),
                                 SupplierName = reader["SupplierName"].ToString(),
                                 VendorCode = reader["KodeVendor"].ToString(),
                                 SupplierStatus = reader["SupplierStatus"].ToString(),
                                 SourceListStatus = reader["SourceListStatus"].ToString(),
-                                CMSFinalCRB = reader["CMSFinalCRB"].ToString(),
-                                ReasonSubmission = reader["ReasonSubmission"].ToString(),
+                                CMSFinalCRB = reader["CMSFinalCRB"]?.ToString(),
+                                ReasonSubmission = reader["ReasonSubmission"]?.ToString(),
                                 ApproverStatus = reader["ApprovalStatus"]?.ToString(),
                                 ApproverName = reader["ApproverName"].ToString(),
                                 ApproverEmail = reader["ApproverEmail"].ToString(),
-                                AttachmentFileName = reader["AttachmentFileName"]?.ToString(), 
+                                AttachmentFileName = reader["AttachmentFileName"]?.ToString(),
                                 AttachedEndorsement = reader["AttachedEndorsement"]?.ToString(),
                                 SubmittedDate = reader["SubmittedDate"] != DBNull.Value ? Convert.ToDateTime(reader["SubmittedDate"]) : null,
                                 ValidityPeriod = reader["ValidityPeriod"]?.ToString(),
                                 Remarks = reader["Remarks"]?.ToString()
-
                             };
                         }
                     }
                 }
             }
-            return viewModel; 
+            return viewModel;
         }
+
+
 
         public async Task ApproveSourceListAsync(ApprovalViewModel model)
         {
