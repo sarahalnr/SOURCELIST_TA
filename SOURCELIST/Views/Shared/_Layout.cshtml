@@ -257,9 +257,9 @@
                     event.preventDefault();
                     const logoutUrl = this.href;
                     Swal.fire({
-                        title: 'Konfirmasi Logout', text: "Apakah Anda yakin ingin keluar?", icon: 'warning',
+                        title: 'Logout Confirmation', text: "Are you sure you want to logout?", icon: 'warning',
                         showCancelButton: true, confirmButtonColor: '#006400', cancelButtonColor: '#d33',
-                        confirmButtonText: 'Ya, Keluar!', cancelButtonText: 'Batal'
+                        confirmButtonText: 'Yes, logout!', cancelButtonText: 'Cancel'
                     }).then((result) => {
                         if (result.isConfirmed) { window.location.href = logoutUrl; }
                     });

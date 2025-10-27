@@ -383,7 +383,7 @@
                             processData: false, contentType: false,
                             success: function (response) {
                                 if (response.success) {
-                                    Swal.fire({ icon: 'success', title: 'Berhasil!', text: response.message })
+                                    Swal.fire({ icon: 'success', title: 'Success!', text: response.message })
                                     .then(() => { window.location.href = '@Url.Action("IndexMySourceList", "SourceList")'; });
                                 } else {
                                     Swal.fire('Error', response.message, 'error');
