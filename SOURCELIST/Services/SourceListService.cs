@@ -283,8 +283,8 @@ namespace sourcelist.Services
                 {
                     command.CommandType = CommandType.StoredProcedure;
                     command.Parameters.AddWithValue("@SourceListNumber", model.SourceListNumber);
-                    command.Parameters.AddWithValue("@Remarks",
-                        string.IsNullOrEmpty(model.Remarks) ? DBNull.Value : (object)model.Remarks);
+                    command.Parameters.AddWithValue("@Remarks", model.Remarks);
+                        //string.IsNullOrEmpty(model.Remarks) ? DBNull.Value : (object)model.Remarks);
                     await connection.OpenAsync();
                     await command.ExecuteNonQueryAsync();
                 }

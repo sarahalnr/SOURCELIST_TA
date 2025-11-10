@@ -119,6 +119,12 @@
             max-width: 250px;
             width: 100%;
         }
+
+        /* style untuk input error */
+        .input-error {
+            border-color: #dc3545 !important; 
+            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
+        }
     </style>
 }
 
@@ -260,23 +266,43 @@
     <script>
         $(function() {
 
+           $('#validityPeriod').on('change', function() {
+                if ($(this).val() !== '') {
+                    $(this).removeClass('input-error');
+                }
+            });
+
+            $('#remarks').on('input', function() {
+                if ($(this).val().trim() !== '') {
+                    $(this).removeClass('input-error');
+                }
+            });
+
+
             //VALIDITY PERIOD
-             $('#validityPeriod').on('change', function() {
-            if ($(this).val() !== '') {
-                $('#btnReject').prop('disabled', true);
-            } else {
-                $('#btnReject').prop('disabled', false);
-            }
-        });
+            $('#validityPeriod').on('change', function() {
+                if ($(this).val() !== '') {
+                    $('#btnReject').prop('disabled', true);
+                    $(this).removeClass('input-error'); 
+                } else {
+                    $('#btnReject').prop('disabled', false);
+                }
+            });
+
+
             // UNTUK TOMBOL APPROVE
         $('#btnApprove').on('click', function () {
-            const validityPeriod = $('#validityPeriod').val();
+                const validityPeriod = $('#validityPeriod').val();
 
-            // Validasi: Pastikan Validity Period sudah dipilih
-            if (!validityPeriod) {
-                Swal.fire('Validation Error', 'Please select a validity period!', 'error');
-                return;
-            }
+                $('#validityPeriod').removeClass('input-error');
+
+                // Validasi: Pastikan Validity Period sudah dipilih
+                if (!validityPeriod) {
+                    Swal.fire('Validation Error', 'Please select a validity period!', 'error');
+                    $('#validityPeriod').addClass('input-error');
+                    return;
+                }
+
 
             Swal.fire({
                 title: 'Are you sure?',
@@ -317,8 +343,19 @@
             });
         });
 
-            // UNTUK TOMBOL REJECT
+         // UNTUK TOMBOL REJECT
         $('#btnReject').on('click', function() {
+                const remarks = $('#remarks').val();
+
+                $('#remarks').removeClass('input-error');
+
+                // Validasi remarks wajib diisi
+                if (!remarks) {
+                    Swal.fire('Validation Error', 'Please fill a Remarks ', 'error');
+                    $('#remarks').addClass('input-error'); 
+                    return;
+                }
+
             Swal.fire({
                     title: 'Are you sure?',
                     text: "You are about to reject this request.",
@@ -328,7 +365,7 @@
                     confirmButtonColor: '#d33',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const remarks = $('#remarks').val(); 
+                    // const remarks = $('#remarks').val(); 
 
                     const dataToSend = {
                         SourceListNumber: '@Model.SourceListNumber',
