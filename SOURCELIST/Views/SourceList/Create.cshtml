@@ -116,9 +116,9 @@
                 <div class="col-sm-9">
                     <select id="supplierStatus" name="SupplierStatus" class="form-select" required>
                         <option value="">-- Select --</option>
-                        <option value="New">New</option>
-                        <option value="Existing">Existing</option>
-                        <option value="Transfer">Transfer</option>
+                        <option value="New Supplier">New</option>
+                        <option value="Existing Supplier">Existing</option>
+                        <option value="Transfer from another site">Transfer</option>
                     </select>
                 </div>
             </div>
@@ -219,10 +219,10 @@
                 const status = supplierStatusSelect.val();
                 supplierContainer.empty(); 
 
-                if (status === 'New') {
+                if (status === 'New Supplier') {
                     supplierContainer.html('<input type="text" id="supplierName" name="SupplierName" class="form-control" required placeholder="Masukkan Nama Supplier Baru">');
                     vendorCodeInput.prop('disabled', false).val('');
-                } else if (status === 'Existing' || status === 'Transfer') {
+                } else if (status === 'Existing Supplier' || status === 'Transfer from another site') {
                     supplierContainer.html('<select id="supplierNameDropdown" name="SupplierId" class="form-select" required></select>');
                     vendorCodeInput.prop('disabled', true).val('');
 
@@ -275,8 +275,8 @@
                         fileSet.display.removeClass('input-error');
                     }
                 };
-                manageState(assessmentFileInput, status === 'New');
-                manageState(endorsementFileInput, status === 'Transfer');
+                manageState(assessmentFileInput, status === 'New Supplier');
+                manageState(endorsementFileInput, status === 'Transfer from another site');
             }
 
 
@@ -330,12 +330,12 @@
 
                 // Validasi dinamis untuk supplier name
                 const supplierStatus = supplierStatusSelect.val();
-                if (supplierStatus === 'New') {
+                if (supplierStatus === 'New Supplier') {
                     if (!$('#supplierName').val()) {
                         emptyFields.push('Supplier Name');
                         $('#supplierName').addClass('input-error');
                     }
-                } else if (supplierStatus === 'Existing' || supplierStatus === 'Transfer') {
+                } else if (supplierStatus === 'Existing Supplier' || supplierStatus === 'Transfer from another site') {
                     if (!$('#supplierNameDropdown').val()) {
                         emptyFields.push('Supplier Name');
                         $('#supplierNameDropdown').next('.select2-container').find('.select2-selection').addClass('input-error');
