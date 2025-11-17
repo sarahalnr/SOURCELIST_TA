@@ -262,6 +262,7 @@
 
 @section Scripts {
     <script>
+    
         document.addEventListener('DOMContentLoaded', function () {
 
             var editUserModal = document.getElementById('editUserModal');
@@ -314,6 +315,32 @@
                 });
             }
 
+              @if (TempData["SuccessMessage"] != null)
+            {
+                    <text>
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: "@Html.Raw(TempData["ErrorMessage"])",
+                        confirmButtonColor: '#28a745'
+                    });
+                    </text>
+            }
+             @if (TempData["ErrorMessage"] != null)
+               {
+
+                           <text>
+                                 Swal.fire({
+                                   icon: 'error',
+                                   title: 'Gagal!',
+                                   text: "@Html.Raw(TempData["ErrorMessage"])",
+                                   confirmButtonColor: '#d33'
+                                });
+                           </text>
+                   
+              }
+
+
             //  event listener untuk form EDIT
             if (editForm) {
                 editForm.addEventListener('submit', function (event) {
@@ -348,6 +375,7 @@
                     }, 400); 
                 });
             }
+
         });
     </script>
 }

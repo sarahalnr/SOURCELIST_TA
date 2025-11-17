@@ -38,7 +38,23 @@ public class AdminController : Controller
     [HttpPost]
     public async Task<IActionResult> CreateUser(UserDTO userDto)
     {
-        await _userService.CreateUserAsync(userDto);
+        if (ModelState.IsValid)
+        {
+            try
+            {
+                await _userService.CreateUserAsync(userDto);
+
+                TempData["SuccessMessage"] = "User berhasil dibuat!";
+                return RedirectToAction("ManageUser");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction("ManageUser");
+            }
+        }
+
+        TempData["ErrorMessage"] = "Data tidak valid atau tidak lengkap.";
         return RedirectToAction("ManageUser");
     }
 
@@ -46,7 +62,23 @@ public class AdminController : Controller
     [HttpPost]
     public async Task<IActionResult> EditUser(UserDTO userDto)
     {
-        await _userService.UpdateUserAsync(userDto);
+        if (ModelState.IsValid)
+        {
+            try
+            {
+                await _userService.UpdateUserAsync(userDto);
+
+                TempData["SuccessMessage"] = "User berhasil diperbarui!";
+                return RedirectToAction("ManageUser");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction("ManageUser");
+            }
+        }
+
+        TempData["ErrorMessage"] = "Data tidak valid atau tidak lengkap.";
         return RedirectToAction("ManageUser");
     }
 

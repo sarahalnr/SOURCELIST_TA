@@ -22,19 +22,32 @@ public class UserService : IUserService
     {
         using (var connection = new SqlConnection(_connectionString))
         {
-            // Panggil SP USER_CRUD dengan TransType 'CREATE'
             using (var command = new SqlCommand("USER_CRUD", connection))
             {
                 command.CommandType = CommandType.StoredProcedure;
                 command.Parameters.AddWithValue("@TransType", "CREATE");
                 command.Parameters.AddWithValue("@Username", userDto.Username);
-                command.Parameters.AddWithValue("@UserPassword", BC.HashPassword(userDto.Password)); 
+                command.Parameters.AddWithValue("@UserPassword", BC.HashPassword(userDto.Password));
                 command.Parameters.AddWithValue("@Email", userDto.Email);
                 command.Parameters.AddWithValue("@Role", userDto.Role);
-              
 
                 await connection.OpenAsync();
-                await command.ExecuteNonQueryAsync();
+
+                try
+                {
+                    await command.ExecuteNonQueryAsync();
+                }
+                catch (SqlException ex)
+                {
+                    if (ex.Number == 2627 || ex.Number == 2601)
+                    {
+                        throw new Exception($"Email {userDto.Email} sudah terdaftar. Silakan gunakan email lain.");
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
             }
         }
     }
@@ -65,7 +78,22 @@ public class UserService : IUserService
                 }
 
                 await connection.OpenAsync();
-                await command.ExecuteNonQueryAsync();
+
+                try
+                {
+                    await command.ExecuteNonQueryAsync();
+                }
+                catch (SqlException ex)
+                {
+                    if (ex.Number == 2627 || ex.Number == 2601)
+                    {
+                        throw new Exception($"Email {userDto.Email} sudah terdaftar. Silakan gunakan email lain.");
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
             }
         }
     }
