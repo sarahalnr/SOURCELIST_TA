@@ -1,6 +1,7 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
-    var userName = User.Identity.Name ?? "Guest";
+    var userName = User.Identity.Name;
+    // var userName = User.Identity.Name ?? "Guest";
     int currentYear = DateTime.Now.Year;
 }
 
@@ -182,8 +183,11 @@
                     </div>
                     <div class="chart-filters">
                         <select id="sourcelistYearFilter">
-                            <option value="@currentYear">(@currentYear)</option>
-                            <option value="@(currentYear - 1)"> (@(currentYear - 1))</option>
+                            @for (int i = 0; i < 3; i++) //perulangan dimulai dari nol selama angka perhitungan kurang dari 3
+                            {
+                                var year = currentYear - i;
+                                <option value="@year">@year</option>
+                            }
                         </select>
                     </div>
                 </div>
