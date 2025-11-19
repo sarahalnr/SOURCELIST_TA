@@ -9,4 +9,6 @@ public interface IUserService
     Task UpdateUserAsync(UserDTO userDto);
 
     Task<UserDTO?> AuthenticateAsync(string email, string password);
+
+    Task<bool> ChangePasswordAsync(int userId, string oldPassword, string newPassword);
 }

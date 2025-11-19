@@ -1,7 +1,10 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using sourcelist.Data;
 using sourcelist.DTOs;
 using sourcelist.Services;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
@@ -11,11 +14,13 @@ public class UserService : IUserService
 {
     private readonly IConfiguration _configuration;
     private readonly string _connectionString;
+    private readonly ApplicationDbContext _context;
 
-    public UserService(IConfiguration configuration)
+    public UserService(IConfiguration configuration , ApplicationDbContext context)
     {
         _configuration = configuration;
         _connectionString = configuration.GetConnectionString("DefaultConnection");
+        _context = context;
     }
 
     public async Task CreateUserAsync(UserDTO userDto)
@@ -173,4 +178,27 @@ public class UserService : IUserService
         }
         return new PagedResult<UserDTO> { Data = users, TotalRows = totalRows };
     }
+
+    public async Task<bool> ChangePasswordAsync(int userId, string oldPassword, string newPassword)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return false;
+
+        // Gunakan BC.Verify untuk membandingkan Plain Text vs Hash
+
+        bool isPasswordCorrect = BC.Verify(oldPassword, user.UserPassword);
+
+        if (!isPasswordCorrect)
+        {
+            return false; // Password lama salah
+        }
+        user.UserPassword = BC.HashPassword(newPassword);
+
+        _context.Update(user);
+        await _context.SaveChangesAsync();
+
+        return true; 
+    }
+
+
 }

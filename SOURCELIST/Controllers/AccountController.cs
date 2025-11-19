@@ -77,11 +77,51 @@ public class AccountController : Controller
         return View(model);
     }
 
+    [HttpGet]
+    public IActionResult ChangePassword()
+    {
+        return View("ChangePass");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View("ChangePass", model);
+        }
+
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(userIdString))
+        {
+            return RedirectToAction("Login"); 
+        }
+
+        int userId = int.Parse(userIdString);
+        bool isSuccess = await _userService.ChangePasswordAsync(userId, model.OldPassword, model.NewPassword);
+
+        if (isSuccess)
+        {
+            TempData["SweetAlertType"] = "success";
+            TempData["SweetAlertMessage"] = "Password successfully updated!";
+            return RedirectToAction("ChangePassword", "Account");
+        }
+        else
+        {
+            // Jika gagal (biasanya karena password lama salah)
+            TempData["SweetAlertType"] = "error";
+            TempData["SweetAlertMessage"] = "Failed to change password. Check your old password.";
+            ModelState.AddModelError("OldPassword", "Password lama tidak sesuai.");
+            return View("ChangePass", model);
+        }
+    }
 
     public async Task<IActionResult> Logout()
-    {
+        {
      
-        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        return RedirectToAction("Login", "Account");
-    }
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Login", "Account");
+        }
 }

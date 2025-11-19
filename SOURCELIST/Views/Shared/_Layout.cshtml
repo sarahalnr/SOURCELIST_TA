@@ -161,12 +161,21 @@
             display: flex;
             align-items: center;
         }
+
+        .sidebar-category {
+            font-size: 0.75rem; 
+            font-weight: 600;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.6); 
+            margin: 20px 25px 10px 25px; 
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 <body>
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">Source List Web</div>
-
+        <div class="sidebar-category">Main</div>
         @if (User.IsInRole("Requestor") || User.IsInRole("Approver") || User.IsInRole("Admin"))
         {
             <a asp-controller="Home" asp-action="Index"
@@ -214,7 +223,14 @@
                 <i class="bi bi-building-gear"></i><span>Manage Supplier</span>
             </a>
         }
-
+        <div class="sidebar-category">Settings</div>
+         @if (User.IsInRole("Requestor") || User.IsInRole("Approver"))
+        {
+            <a asp-controller="Account" asp-action="ChangePassword"
+            class="@(currentAction == "ChangePassword" ? "active" : "")">
+                <i class="bi bi-key"></i><span>Change Password</span>
+        </a>
+        }
         <a id="logoutLink" asp-controller="Account" asp-action="Logout">
             <i class="bi bi-box-arrow-right"></i><span>Logout</span>
         </a>
