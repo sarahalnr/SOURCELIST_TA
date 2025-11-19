@@ -265,6 +265,32 @@
                 });
             }
 
+             @if (TempData["SuccessMessage"] != null)
+            {
+                        <text>
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Succes!',
+                            text: "@Html.Raw(TempData["ErrorMessage"])",
+                            confirmButtonColor: '#28a745'
+                        });
+                        </text>
+            }
+             @if (TempData["ErrorMessage"] != null)
+               {
+
+                               <text>
+                                     Swal.fire({
+                                       icon: 'error',
+                                       title: 'Failed!',
+                                       text: "@Html.Raw(TempData["ErrorMessage"])",
+                                       confirmButtonColor: '#d33'
+                                    });
+                               </text>
+
+              }
+
+
             // event listener untuk form EDIT
             if (editForm) {
                 editForm.addEventListener('submit', function (event) {
