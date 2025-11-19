@@ -44,7 +44,7 @@ public class AdminController : Controller
             {
                 await _userService.CreateUserAsync(userDto);
 
-                TempData["SuccessMessage"] = "User berhasil dibuat!";
+                TempData["SuccessMessage"] = "User has been successfully created!";
                 return RedirectToAction("ManageUser");
             }
             catch (Exception ex)
@@ -54,7 +54,7 @@ public class AdminController : Controller
             }
         }
 
-        TempData["ErrorMessage"] = "Data tidak valid atau tidak lengkap.";
+        TempData["ErrorMessage"] = "Data is invalid or incomplete.";
         return RedirectToAction("ManageUser");
     }
 
@@ -68,7 +68,7 @@ public class AdminController : Controller
             {
                 await _userService.UpdateUserAsync(userDto);
 
-                TempData["SuccessMessage"] = "User berhasil diperbarui!";
+                TempData["SuccessMessage"] = "User has been successfully updated!";
                 return RedirectToAction("ManageUser");
             }
             catch (Exception ex)
@@ -78,7 +78,7 @@ public class AdminController : Controller
             }
         }
 
-        TempData["ErrorMessage"] = "Data tidak valid atau tidak lengkap.";
+        TempData["ErrorMessage"] = "Data is invalid or incomplete..";
         return RedirectToAction("ManageUser");
     }
 
@@ -96,14 +96,46 @@ public class AdminController : Controller
     [HttpPost]
     public async Task<IActionResult> CreateSupplier(SupplierDTO supplierDto)
     {
-        await _supplierService.CreateSupplierAsync(supplierDto);
-        return RedirectToAction("ManageSupplier");
+        if (ModelState.IsValid)
+        {
+            try
+            {
+                await _supplierService.CreateSupplierAsync(supplierDto);
+                TempData["SuccessMessage"] = "Supplier has been successfully created!";
+                return RedirectToAction("ManageSupplier");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction("ManageSupplier");
+            }
+        }
+    
+
+      TempData["ErrorMessage"] = "Data is invalid or incomplete..";
+        
+      return RedirectToAction("ManageSupplier");
     }
 
     [HttpPost]
     public async Task<IActionResult> EditSupplier(SupplierDTO supplierDto)
     {
-        await _supplierService.UpdateSupplierAsync(supplierDto);
+        if (ModelState.IsValid)
+        {
+            try
+            {
+                await _supplierService.UpdateSupplierAsync(supplierDto);
+                TempData["SuccessMessage"] = "Supplier has been successfully updated!";
+                return RedirectToAction("ManageSupplier");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction("ManageSupplier");
+            }
+        }
+        TempData["ErrorMessage"] = "Data is invalid or incomplete..";
         return RedirectToAction("ManageSupplier");
+        }
     }
-}
+

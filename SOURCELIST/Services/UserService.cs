@@ -46,7 +46,7 @@ public class UserService : IUserService
                 {
                     if (ex.Number == 2627 || ex.Number == 2601)
                     {
-                        throw new Exception($"Email {userDto.Email} sudah terdaftar. Silakan gunakan email lain.");
+                        throw new Exception($"Email {userDto.Email} is already registed.please use a different email.");
                     }
                     else
                     {
@@ -92,7 +92,7 @@ public class UserService : IUserService
                 {
                     if (ex.Number == 2627 || ex.Number == 2601)
                     {
-                        throw new Exception($"Email {userDto.Email} sudah terdaftar. Silakan gunakan email lain.");
+                        throw new Exception($"Email {userDto.Email} is already registed.please use a different email.");
                     }
                     else
                     {

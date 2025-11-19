@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using QuestPDF.Elements;
+using Microsoft.Graph.Models.CallRecords;
+using Microsoft.VisualBasic;
 using PuppeteerSharp;
 using PuppeteerSharp.Media;
+using QuestPDF.Elements;
 using sourcelist.Data;
 using sourcelist.DTOs;
 using sourcelist.Helper;
@@ -51,14 +53,14 @@ namespace sourcelist.Controllers
        
             if (!User.Identity.IsAuthenticated)
             {
-                return Unauthorized(new { success = false, message = "Sesi Anda telah berakhir. Silakan login kembali." });
+                return Unauthorized(new { success = false, message = "your sesion has expired. please log in again" });
             }
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var fullNameClaim = User.FindFirst(ClaimTypes.Name)?.Value;
             var emailClaim = User.FindFirst(ClaimTypes.Email)?.Value;
             if (string.IsNullOrEmpty(userIdClaim))
             {
-                return StatusCode(500, new { success = false, message = "Informasi User ID tidak ditemukan di sesi login Anda." });
+                return StatusCode(500, new { success = false, message = "User ID information was not found in your login sesion" });
             }
             model.Requestor = fullNameClaim;
             model.RequestorEmail = emailClaim;
@@ -70,7 +72,7 @@ namespace sourcelist.Controllers
                 var approver = await _context.Users.FirstOrDefaultAsync(u => u.Role == "Approver");
                 if (approver == null)
                 {
-                    return StatusCode(500, new { success = false, message = "Sistem error: Tidak ada user dengan role 'Approver'." });
+                    return StatusCode(500, new { success = false, message = "Sistem error: no user with the approver role found" });
                 }
                 model.ApproverId = approver.UserID;
                 model.ApproverName = approver.Username;
@@ -80,7 +82,7 @@ namespace sourcelist.Controllers
                 {
                     if (string.IsNullOrWhiteSpace(model.SupplierName))
                     {
-                        return BadRequest(new { success = false, message = "Nama Supplier wajib diisi untuk supplier baru." });
+                        return BadRequest(new { success = false, message = "Supplier name is required for a new supplier." });
                     }
                     var existingSupplier = await _context.Suppliers.FirstOrDefaultAsync(s => s.NamaSupplier == model.SupplierName);
 
@@ -110,7 +112,7 @@ namespace sourcelist.Controllers
                     var supplier = await _context.Suppliers.FindAsync(model.SupplierId);
                     if (supplier == null)
                     {
-                        return BadRequest(new { success = false, message = $"Supplier dengan ID '{model.SupplierId}' tidak ditemukan." });
+                        return BadRequest(new { success = false, message = $"Supplier ID '{model.SupplierId}' not found." });
                     }
                     model.SupplierName = supplier.NamaSupplier;
                 }
@@ -122,17 +124,17 @@ namespace sourcelist.Controllers
 
             if (model.SupplierStatus == "New" && model.AssessmentAttachmentFile == null)
             {
-                ModelState.AddModelError("AssessmentAttachmentFile", "Supplier Assesment Form wajib diisi untuk supplier baru.");
+                ModelState.AddModelError("AssessmentAttachmentFile", "Supplier Assesment Form required for new supplier.");
             }
             if (model.SupplierStatus == "Transfer" && model.AttachedEndorsementFile == null)
             {
-                ModelState.AddModelError("AttachedEndorsementFile", "Supplier Endorsement List wajib diisi untuk supplier transfer.");
+                ModelState.AddModelError("AttachedEndorsementFile", "Supplier Endorsement List required for supplier transfer.");
             }
 
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-                return BadRequest(new { success = false, message = "Data tidak valid: " + string.Join(", ", errors) });
+                return BadRequest(new { success = false, message = "Invalid data: " + string.Join(", ", errors) });
             }
 
             try
@@ -144,7 +146,7 @@ namespace sourcelist.Controllers
 
                 if (string.IsNullOrEmpty(newSourceListId))
                 {
-                    return StatusCode(500, new { success = false, message = "Gagal membuat data. Stored Procedure tidak mengembalikan ID baru." });
+                    return StatusCode(500, new { success = false, message = "Failed to create data, the stored procedure did not return in ID." });
                 }
                 string finalFolder = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", newSourceListId);
                 if (!Directory.Exists(finalFolder))
@@ -227,16 +229,15 @@ namespace sourcelist.Controllers
                 }
                 catch (Exception ex_email)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Gagal kirim email submission: {ex_email.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Failed to send email: {ex_email.Message}");
                    
                 }
-                // --- AKHIR KODE EMAIL ---
 
-                return Ok(new { success = true, message = "Data berhasil disimpan!", newId = newSourceListId });
+                return Ok(new { success = true, message = "Data has been succesfully saved!", newId = newSourceListId });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { success = false, message = "Terjadi kesalahan saat menyimpan data: " + (ex.InnerException?.Message ?? ex.Message) });
+                return StatusCode(500, new { success = false, message = "An error occurred while saving the data: " + (ex.InnerException?.Message ?? ex.Message) });
             }
         }
         public async Task<IActionResult> IndexMySourceList(
@@ -252,7 +253,7 @@ namespace sourcelist.Controllers
             {
                 if (isAjax)
                 {
-                    return Unauthorized(new { message = "Sesi Anda telah berakhir. Silakan login kembali." });
+                    return Unauthorized(new { message = "Session not found. Please log in." });
                 }
                 return RedirectToAction("Login", "Account");
             }
@@ -260,7 +261,7 @@ namespace sourcelist.Controllers
             var emailClaim = User.FindFirst(ClaimTypes.Email)?.Value;
             if (string.IsNullOrEmpty(emailClaim))
             {
-                return StatusCode(500, "Informasi email tidak ditemukan di sesi login Anda.");
+                return StatusCode(500, "User email information not found in your session.");
             }
 
             var result = await _sourceListService.GetSourceListsByEmailPagedAsync(emailClaim, page, pageSize, sortColumn, sortDirection, searchTerm);
@@ -294,14 +295,14 @@ namespace sourcelist.Controllers
             {
                 if (isAjax)
                 {
-                    return Unauthorized(new { message = "Sesi Anda telah berakhir. Silakan login kembali." });
+                    return Unauthorized(new { message = "Session not found. Please log in." });
                 }
                 return RedirectToAction("Login", "Account");
             }
             var emailClaim = User.FindFirst(ClaimTypes.Email)?.Value;
             if (string.IsNullOrEmpty(emailClaim))
             {
-                return StatusCode(500, "Informasi email tidak ditemukan di sesi login Anda.");
+                return StatusCode(500, "User email information not found in your session.");
             }
 
             var result = await _sourceListService.GetSourceListsForApprovalPagedAsync(emailClaim, page, pageSize, sortColumn, sortDirection, searchTerm);
@@ -452,7 +453,7 @@ namespace sourcelist.Controllers
                 }
                 catch (Exception ex_email)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Gagal kirim email approval: {ex_email.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Failed to send approval email: {ex_email.Message}");
                 }
                 // --- AKHIR KODE EMAIL ---
 
@@ -507,7 +508,7 @@ namespace sourcelist.Controllers
                                     font-weight: bold;
                                     display: inline-block;
                                 }}
-                            </style>
+                            </style>S
                         </head>
                         <body>
                             <h3>Source List Rejected Notification</h3>
@@ -537,7 +538,7 @@ namespace sourcelist.Controllers
                 }
                 catch (Exception ex_email)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Gagal kirim email rejection: {ex_email.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Failed to send rejection email: {ex_email.Message}");
                 }
                 // --- AKHIR KODE EMAIL ---
 
@@ -555,7 +556,7 @@ namespace sourcelist.Controllers
 
             if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(fileName))
             {
-                return BadRequest("Informasi file tidak lengkap.");
+                return BadRequest("File information is incomplete.");
             }
 
             string fullPath = Path.Combine(_webHostEnvironment.WebRootPath, "attachments", id, fileName);
@@ -563,7 +564,7 @@ namespace sourcelist.Controllers
 
             if (!System.IO.File.Exists(fullPath))
             {
-                return NotFound("File tidak ditemukan di server.");
+                return NotFound("File not found on the server.");
             }
 
 
@@ -586,14 +587,14 @@ namespace sourcelist.Controllers
             {
                 if (isAjax)
                 {
-                    return Unauthorized(new { message = "Sesi Anda telah berakhir. Silakan login kembali." });
+                    return Unauthorized(new { message = "Session not found. Please log in." });
                 }
                 return RedirectToAction("Login", "Account");
             }
             var emailClaim = User.FindFirst(ClaimTypes.Email)?.Value;
             if (string.IsNullOrEmpty(emailClaim))
             {
-                return StatusCode(500, "Informasi email tidak ditemukan di sesi login Anda.");
+                return StatusCode(500, "User email information not found in your session.");
             }
 
             var result = await _sourceListService.GetSourceListsForAllSourceListPagedAsync(emailClaim, page, pageSize, sortColumn, sortDirection, searchTerm);
@@ -703,7 +704,7 @@ namespace sourcelist.Controllers
             catch (Exception ex)
             {
                 // Tangani error 
-                return StatusCode(500, $"Error generating PDF. Pastikan Anda menjalankan aplikasi. Error: {ex.Message}");
+                return StatusCode(500, $"Error generating PDF. please make sure you are the running application Error: {ex.Message}");
             }
         }
     }
