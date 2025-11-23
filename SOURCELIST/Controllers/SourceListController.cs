@@ -688,7 +688,7 @@ namespace sourcelist.Controllers
 
                 var pdfBytes = await page.PdfDataAsync(new PdfOptions
                 {
-                    Height = "140mm",
+                    Height = "150mm",
                     PrintBackground = true,
                     MarginOptions = new MarginOptions
                     {
