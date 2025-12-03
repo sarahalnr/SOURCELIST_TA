@@ -44,9 +44,4 @@
 	<ItemGroup>
 	  <Folder Include="wwwroot\Attachments\" />
 	</ItemGroup>
-	<ItemGroup>
-	  <None Update="Reports\sourcelist template.pdf">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	</ItemGroup>
 </Project>
