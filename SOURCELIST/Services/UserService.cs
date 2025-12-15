@@ -61,7 +61,6 @@ public class UserService : IUserService
     {
         using (var connection = new SqlConnection(_connectionString))
         {
-            // Panggil SP USER_CRUD dengan TransType 'UPDATE'
             using (var command = new SqlCommand("USER_CRUD", connection))
             {
                 command.CommandType = CommandType.StoredProcedure;
@@ -184,7 +183,7 @@ public class UserService : IUserService
         var user = await _context.Users.FindAsync(userId);
         if (user == null) return false;
 
-        // Gunakan BC.Verify untuk membandingkan Plain Text vs Hash
+        // BC.Verify untuk membandingkan Plain Text vs Hash
 
         bool isPasswordCorrect = BC.Verify(oldPassword, user.UserPassword);
 
@@ -199,6 +198,5 @@ public class UserService : IUserService
 
         return true; 
     }
-
 
 }

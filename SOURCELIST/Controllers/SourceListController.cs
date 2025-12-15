@@ -18,6 +18,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace sourcelist.Controllers
@@ -41,6 +42,7 @@ namespace sourcelist.Controllers
             _emailService = emailService;
         }
 
+        [Authorize(Roles = "Requestor")]
         public IActionResult Create()
         {
             return View();
@@ -48,6 +50,7 @@ namespace sourcelist.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Requestor")]
         public async Task<IActionResult> Create(SourceListCreateViewModel model)
         {
        
@@ -171,7 +174,7 @@ namespace sourcelist.Controllers
                     }
                 }
 
-                //  KIRIM EMAIL SUBMISSION (Mirip SP SOURCELIST_SEND_MAIL_SUBMISSION) 
+                //  KIRIM EMAIL SUBMISSION 
                 try
                 {
                     string to = model.ApproverEmail;
@@ -240,6 +243,8 @@ namespace sourcelist.Controllers
                 return StatusCode(500, new { success = false, message = "An error occurred while saving the data: " + (ex.InnerException?.Message ?? ex.Message) });
             }
         }
+
+        [Authorize(Roles = "Requestor")]
         public async Task<IActionResult> IndexMySourceList(
          int page = 1,
          int pageSize = 10,
@@ -248,7 +253,6 @@ namespace sourcelist.Controllers
          string searchTerm = null,
          bool isAjax = false)
         {
-            // ... (kode Anda tidak berubah) ...
             if (!User.Identity.IsAuthenticated)
             {
                 if (isAjax)
@@ -283,6 +287,7 @@ namespace sourcelist.Controllers
 
 
         [HttpGet]
+        [Authorize(Roles = "Approver")]
         public async Task<IActionResult> IndexForApprove(
     int page = 1,
     int pageSize = 10,
@@ -381,6 +386,7 @@ namespace sourcelist.Controllers
 
 
         [HttpPost]
+        [Authorize(Roles = "Approver")]
         public async Task<IActionResult> Approve([FromBody] ApprovalViewModel model)
         {
             if (model == null || string.IsNullOrEmpty(model.SourceListNumber))
@@ -391,7 +397,6 @@ namespace sourcelist.Controllers
             {
                 await _sourceListService.ApproveSourceListAsync(model);
 
-                // KIRIM EMAIL APPROVE (Mirip SP SOURCELIST_SEND_MAIL_APPROVE) ---
                 try
                 {
                     // Ambil detail data untuk dikirim ke email
@@ -455,7 +460,7 @@ namespace sourcelist.Controllers
                 {
                     System.Diagnostics.Debug.WriteLine($"Failed to send approval email: {ex_email.Message}");
                 }
-                // --- AKHIR KODE EMAIL ---
+                // AKHIR KODE EMAIL
 
                 return Ok(new { success = true, message = "SourceList has been approved." });
             }
@@ -466,6 +471,7 @@ namespace sourcelist.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Approver")]
         public async Task<IActionResult> Reject([FromBody] ApprovalViewModel model)
         {
             if (model == null || string.IsNullOrEmpty(model.SourceListNumber))
@@ -476,7 +482,6 @@ namespace sourcelist.Controllers
             {
                 await _sourceListService.RejectSourceListAsync(model);
 
-                // KIRIM EMAIL REJECT (Mirip SP SOURCELIST_SEND_MAIL_REJECT)
                 try
                 {
                     // Ambil detail data untuk dikirim ke email
@@ -540,7 +545,6 @@ namespace sourcelist.Controllers
                 {
                     System.Diagnostics.Debug.WriteLine($"Failed to send rejection email: {ex_email.Message}");
                 }
-                // --- AKHIR KODE EMAIL ---
 
                 return Ok(new { success = true, message = "SourceList has been rejected." });
             }

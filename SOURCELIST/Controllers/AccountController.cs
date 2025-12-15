@@ -110,7 +110,7 @@ public class AccountController : Controller
         }
         else
         {
-            // Jika gagal (biasanya karena password lama salah)
+            // Jika gagal (karena password salah)
             TempData["SweetAlertType"] = "error";
             TempData["SweetAlertMessage"] = "Failed to change password. Check your old password.";
             ModelState.AddModelError("OldPassword", "Password lama tidak sesuai.");
