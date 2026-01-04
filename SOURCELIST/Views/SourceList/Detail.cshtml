@@ -12,12 +12,12 @@
         "CANCELED" => (Class: "status-btn-CANCELED", Icon: "bi-slash-circle"),
         _ => (Class: "status-btn-DEFAULT", Icon: "bi-question-circle"),
     };
-    // Logika baru untuk ApproverStatus
+    // Logika untuk ApproverStatus
     var approverStatus = Model.ApproverStatus?.Trim().ToUpper() ?? "PENDING";
     var approverStatusConfig = approverStatus switch
     {
         "PENDING" => (Class: "status-btn-PENDING", Icon: "bi-hourglass-split"),
-        "COMPLETED" => (Class: "status-btn-APPROVED", Icon: "bi-check-circle"),
+        "APPROVED" => (Class: "status-btn-APPROVED", Icon: "bi-check-circle"),
         "REJECTED" => (Class: "status-btn-REJECTED", Icon: "bi-x-circle"),
         _ => (Class: "status-btn-DEFAULT", Icon: "bi-question-circle"),
     };
@@ -201,7 +201,7 @@
         <div class="data-row"><label>Approver Email</label><div class="value">@Model.ApproverEmail</div></div>
 
   
-        @if (approverStatus == "COMPLETED")
+        @if (approverStatus == "APPROVED")
         {
             <div class="data-row">
                 <label>Validity Period</label>
