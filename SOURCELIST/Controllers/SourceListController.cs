@@ -96,7 +96,7 @@ namespace sourcelist.Controllers
                             NamaSupplier = model.SupplierName,
                             KodeVendor = model.VendorCode,
                             EmailSupplier = "not.set@email.com",
-                            Status = "Aktif",
+                            Status = "Non-Aktif",
                             CreatedAt = DateTime.Now
                         };
                         _context.Suppliers.Add(newSupplier);
@@ -405,6 +405,18 @@ namespace sourcelist.Controllers
             {
                 await _sourceListService.ApproveSourceListAsync(model);
 
+                var detail = await _context.Sourcelists.FirstOrDefaultAsync(s => s.SourceListNumber == model.SourceListNumber);
+
+                if (detail != null)
+                {
+                    var supplier = await _context.Suppliers.FindAsync(detail.ID_Supplier);
+                    if (supplier != null && supplier.Status == "Non-Aktif")
+                    {
+                        supplier.Status = "Aktif";
+                        _context.Suppliers.Update(supplier);
+                        await _context.SaveChangesAsync();
+                    }
+                }
                 try
                 {
                     // Ambil detail data untuk dikirim ke email
