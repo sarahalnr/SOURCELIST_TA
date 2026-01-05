@@ -242,7 +242,7 @@
     @* perbaiki agar unduh pdf  *@
     <div class="fixed-bottom-right">
         <a href="@Url.Action("DownloadSourceListPdf", "SourceList", new { id = Model.SourceListNumber })"
-           class="btn btn-danger"
+           class="btn btn-primary"
            target="_blank">
             <i class="fa fa-file-pdf"></i> Download PDF
         </a>
@@ -321,6 +321,8 @@
                         Remarks: remarks
                     };
 
+                    Swal.fire({ title: 'Submitting...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
                     $.ajax({
                         url: '@Url.Action("Approve", "SourceList")',
                         type: 'POST',
@@ -371,6 +373,9 @@
                         SourceListNumber: '@Model.SourceListNumber',
                         Remarks: remarks 
                     };
+
+                    Swal.fire({ title: 'Submitting...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
                     $.ajax({
                         url: '@Url.Action("Reject", "SourceList")',
                         type: 'POST',

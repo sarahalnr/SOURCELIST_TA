@@ -441,6 +441,7 @@ namespace sourcelist.Controllers
                                 <tr><td class='label'>Part Description</td><td>{data.PartDescription}</td></tr>
                                 <tr><td class='label'>Supplier</td><td>{data.SupplierName}</td></tr>
                                 <tr><td class='label'>Reason of Submission</td><td>{data.ReasonSubmission}</td></tr>
+                                <tr><td class='label'>Validity Period</td><td>{data.ValidityPeriod}</td></tr>
                                 <tr><td class='label'>Approver Remark</td><td>{model.Remarks ?? "-"}</td></tr>
                             </table>
                             <br/>
@@ -526,7 +527,7 @@ namespace sourcelist.Controllers
                                 <tr><td class='label'>Part Description</td><td>{data.PartDescription}</td></tr>
                                 <tr><td class='label'>Supplier</td><td>{data.SupplierName}</td></tr>
                                 <tr><td class='label'>Reason of Submission</td><td>{data.ReasonSubmission}</td></tr>
-                                <tr><td class='label'>Reject Remark</td><td>{model.Remarks ?? "-"}</td></tr>
+                                <tr><td class='label'>Reject Remark</td><td>{model.Remarks}</td></tr>
                             </table>
                             <br/>
                             <p>Please check the details and revise your submission in the Source List System Application.<br/> 
