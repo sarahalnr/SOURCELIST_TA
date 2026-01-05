@@ -81,7 +81,7 @@ namespace sourcelist.Controllers
                 model.ApproverName = approver.Username;
                 model.ApproverEmail = approver.Email;
 
-                if (model.SupplierStatus == "New")
+                if (model.SupplierStatus == "New Supplier")
                 {
                     if (string.IsNullOrWhiteSpace(model.SupplierName))
                     {
@@ -96,7 +96,8 @@ namespace sourcelist.Controllers
                             NamaSupplier = model.SupplierName,
                             KodeVendor = model.VendorCode,
                             EmailSupplier = "not.set@email.com",
-                            Status = "Aktif"
+                            Status = "Aktif",
+                            CreatedAt = DateTime.Now
                         };
                         _context.Suppliers.Add(newSupplier);
                         await _context.SaveChangesAsync();
@@ -122,10 +123,17 @@ namespace sourcelist.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { success = false, message = "Gagal mengambil atau menyimpan data master: " + ex.Message });
+                // Mengambil pesan error
+                var innerMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Gagal simpan Supplier: " + innerMessage
+                });
             }
 
-            if (model.SupplierStatus == "New" && model.AssessmentAttachmentFile == null)
+            if (model.SupplierStatus == "New Supplier" && model.AssessmentAttachmentFile == null)
             {
                 ModelState.AddModelError("AssessmentAttachmentFile", "Supplier Assesment Form required for new supplier.");
             }
@@ -514,7 +522,7 @@ namespace sourcelist.Controllers
                                     font-weight: bold;
                                     display: inline-block;
                                 }}
-                            </style>S
+                            </style>
                         </head>
                         <body>
                             <h3>Source List Rejected Notification</h3>

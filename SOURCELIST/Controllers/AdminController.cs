@@ -113,8 +113,14 @@ public class AdminController : Controller
     
 
       TempData["ErrorMessage"] = "Data is invalid or incomplete..";
-        
-      return RedirectToAction("ManageSupplier");
+
+        var errorMessages = string.Join(" | ", ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage));
+
+        TempData["ErrorMessage"] = "Validation Error: " + errorMessages;
+
+        return RedirectToAction("ManageSupplier");
     }
 
     [HttpPost]
