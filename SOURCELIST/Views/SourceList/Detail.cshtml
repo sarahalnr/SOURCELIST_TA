@@ -222,7 +222,7 @@
  @if (ViewBag.ShowApprovalButtons as bool? == true)
     {
         <div class="data-row">
-            <label for="remarks">Remarks (Optional):</label>
+            <label for="remarks">Remarks:</label>
             <textarea id="remarks" class="form-control value" style="background-color:white;" rows="3"></textarea>
         </div>
         <div class="data-block">
@@ -290,19 +290,27 @@
             });
 
 
-            // UNTUK TOMBOL APPROVE
+         // UNTUK TOMBOL APPROVE
         $('#btnApprove').on('click', function () {
-                const validityPeriod = $('#validityPeriod').val();
+            const validityPeriod = $('#validityPeriod').val();
+            const remarks = $('#remarks').val().trim();
 
-                $('#validityPeriod').removeClass('input-error');
+            $('#validityPeriod').removeClass('input-error');
+            $('#remarks').removeClass('input-error');
+            $('#validityPeriod').next('.select2-container').find('.select2-selection').removeClass('input-error');
 
-                // Validasi: Pastikan Validity Period sudah dipilih
-                if (!validityPeriod) {
-                    Swal.fire('Validation Error', 'Please select a validity period!', 'error');
-                    $('#validityPeriod').addClass('input-error');
-                    return;
-                }
+            if (validityPeriod === "" || validityPeriod === null) {
+                Swal.fire('Validation Error', 'Please select a validity period!', 'error');
+                $('#validityPeriod').addClass('input-error');
+                $('#validityPeriod').next('.select2-container').find('.select2-selection').addClass('input-error');
+                return;
+            }
 
+            if (remarks === "") {
+                Swal.fire('Validation Error', 'Please fill in the Remarks before approving!', 'error');
+                $('#remarks').addClass('input-error');
+                return; 
+            }
 
             Swal.fire({
                 title: 'Are you sure?',
@@ -313,8 +321,6 @@
                 confirmButtonColor: '#28a745',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const remarks = $('#remarks').val();
-
                     const dataToSend = {
                         SourceListNumber: '@Model.SourceListNumber',
                         ValidityPeriod: validityPeriod,
@@ -333,12 +339,7 @@
                                 .then(() => window.location.href = '@ViewData["ReturnUrl"]');
                         },
                         error: function(xhr) {
-                            if (xhr.status === 401) {
-                                Swal.fire('Session Expired', 'Your session has ended. Please log in again.', 'warning')
-                                    .then(() => window.location.href = '@Url.Action("Login", "Account")');
-                            } else {
-                                Swal.fire('Error!', 'An unknown error occurred.', 'error');
-                            }
+                            Swal.fire('Error!', 'An unknown error occurred.', 'error');
                         }
                     });
                 }
