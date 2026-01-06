@@ -77,49 +77,35 @@ namespace sourcelist.Controllers
                 {
                     return StatusCode(500, new { success = false, message = "Sistem error: no user with the approver role found" });
                 }
-                model.ApproverId = approver.UserID;
-                model.ApproverName = approver.Username;
-                model.ApproverEmail = approver.Email;
+                // cek duplikat berdasarkan nama atau vendor code
+                var duplicateSupplier = await _context.Suppliers
+                    .FirstOrDefaultAsync(s => s.NamaSupplier.ToLower() == model.SupplierName.ToLower()
+                                           || s.KodeVendor.ToLower() == model.VendorCode.ToLower());
 
-                if (model.SupplierStatus == "New Supplier")
+                if (duplicateSupplier != null)
                 {
-                    if (string.IsNullOrWhiteSpace(model.SupplierName))
-                    {
-                        return BadRequest(new { success = false, message = "Supplier name is required for a new supplier." });
-                    }
-                    var existingSupplier = await _context.Suppliers.FirstOrDefaultAsync(s => s.NamaSupplier == model.SupplierName);
+                    string msg = duplicateSupplier.NamaSupplier.Equals(model.SupplierName, StringComparison.OrdinalIgnoreCase)
+                        ? $"Supplier name '{model.SupplierName}' already exists."
+                        : $"Vendor Code '{model.VendorCode}' is already registered to {duplicateSupplier.NamaSupplier}.";
 
-                    if (existingSupplier == null)
-                    {
-                        var newSupplier = new Supplier
-                        {
-                            NamaSupplier = model.SupplierName,
-                            KodeVendor = model.VendorCode,
-                            EmailSupplier = "not.set@email.com",
-                            Status = "Non-Aktif",
-                            CreatedAt = DateTime.Now
-                        };
-                        _context.Suppliers.Add(newSupplier);
-                        await _context.SaveChangesAsync();
-
-
-                        model.SupplierId = newSupplier.ID_Supplier;
-                    }
-                    else
-                    {
-
-                        model.SupplierId = existingSupplier.ID_Supplier;
-                    }
+                    return BadRequest(new { success = false, message = msg });
                 }
-                else
+
+                // jika tidak duplikat, buat baru
+                var newSupplier = new Supplier
                 {
-                    var supplier = await _context.Suppliers.FindAsync(model.SupplierId);
-                    if (supplier == null)
-                    {
-                        return BadRequest(new { success = false, message = $"Supplier ID '{model.SupplierId}' not found." });
-                    }
-                    model.SupplierName = supplier.NamaSupplier;
-                }
+                    NamaSupplier = model.SupplierName,
+                    KodeVendor = model.VendorCode,
+                    EmailSupplier = "not.set@email.com",
+                    Status = "Non-Aktif",
+                    CreatedAt = DateTime.Now
+                };
+                _context.Suppliers.Add(newSupplier);
+                await _context.SaveChangesAsync();
+
+                model.SupplierId = newSupplier.ID_Supplier;
+            
+
             }
             catch (Exception ex)
             {

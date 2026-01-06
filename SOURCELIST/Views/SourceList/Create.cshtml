@@ -389,9 +389,14 @@
                                     Swal.fire('Error', response.message, 'error');
                                 }
                             },
-                            error: function (jqXHR) {
-                                const errorMsg = jqXHR.responseJSON?.message || "Terjadi kesalahan yang tidak diketahui.";
-                                Swal.fire('Permintaan Gagal', errorMsg, 'error');
+                             error: function (jqXHR) {
+                                const errorMsg = jqXHR.responseJSON?.message || "An unexpected error occurred.";
+
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Validation Failed',
+                                    text: errorMsg
+                                });
                             }
                         });
                     }
