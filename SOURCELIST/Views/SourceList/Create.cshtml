@@ -119,7 +119,7 @@
                         <option value="">-- Select --</option>
                         <option value="New Supplier">New</option>
                         <option value="Existing Supplier">Existing</option>
-                        <option value="Transfer from another site">Transfer</option>
+                        <option value="Transfer from another site">Transfer from another site</option>
                     </select>
                 </div>
             </div>
@@ -323,13 +323,31 @@
                  }
             });
 
-            // --- EVENT HANDLER TOMBOL SUBMIT ---
-            $('#btnSubmit').on('click', function () {
+             // --- EVENT HANDLER TOMBOL SUBMIT ---
+                $('#btnSubmit').on('click', function () {
                 form.find('.input-error').removeClass('input-error');
                 let emptyFields = [];
 
-                // Validasi dinamis untuk supplier name
                 const supplierStatus = supplierStatusSelect.val();
+
+                //File Assessment (Hanya jika New Supplier)
+                if (supplierStatus === 'New Supplier') {
+                    const fileInput = $('#supplierAssessmentForm');
+                    if (fileInput[0].files.length === 0) {
+                        emptyFields.push('Supplier Assessment Form');
+                        $('#assessmentFileDisplay').addClass('input-error');
+                    }
+                }
+
+                //  File Endorsement (Hanya jika Transfer)
+                if (supplierStatus === 'Transfer from another site') {
+                    const fileInput = $('#endorsementForm');
+                    if (fileInput[0].files.length === 0) {
+                        emptyFields.push('Supplier Endorsement List');
+                        $('#endorsementFileDisplay').addClass('input-error');
+                    }
+                }
+
                 if (supplierStatus === 'New Supplier') {
                     if (!$('#supplierName').val()) {
                         emptyFields.push('Supplier Name');
@@ -342,13 +360,14 @@
                     }
                 }
 
-                // Validasi field lainnya
                 form.find('input[required]:enabled, select[required]:enabled, textarea[required]:enabled').each(function() {
                     const el = $(this);
+                    if (el.attr('type') === 'file') return;
+
                     if (!el.val() || el.val().trim() === '') {
-                        const label = $(`label[for='${el.attr('id')}']`).text();
+                        const label = $(`label[for='${el.attr('id')}']`).text() || el.attr('placeholder') || 'Required Field';
                         if (!emptyFields.includes(label) && label) {
-                           emptyFields.push(label);
+                            emptyFields.push(label);
                         }
                         el.addClass('input-error');
                         if (el.is('select')) {
@@ -359,7 +378,8 @@
 
                 if (emptyFields.length > 0) {
                     Swal.fire({
-                        icon: 'warning', title: 'Please fill in all required fields',
+                        icon: 'warning',
+                        title: 'Please fill in all required fields',
                         html: 'The following fields cannot be empty:<br><ul style="text-align:left; list-style-position: inside;">' + emptyFields.map(f => `<li>${f}</li>`).join('') + '</ul>'
                     });
                     return;

@@ -77,36 +77,49 @@ namespace sourcelist.Controllers
                 {
                     return StatusCode(500, new { success = false, message = "Sistem error: no user with the approver role found" });
                 }
-                // cek duplikat berdasarkan nama atau vendor code
-                var duplicateSupplier = await _context.Suppliers
-                    .FirstOrDefaultAsync(s => s.NamaSupplier.ToLower() == model.SupplierName.ToLower()
-                                           || s.KodeVendor.ToLower() == model.VendorCode.ToLower());
 
-                if (duplicateSupplier != null)
+                model.ApproverId = approver.UserID;
+                model.ApproverName = approver.Username;
+                model.ApproverEmail = approver.Email;
+
+
+                if (model.SupplierStatus == "New Supplier")
                 {
-                    string msg = duplicateSupplier.NamaSupplier.Equals(model.SupplierName, StringComparison.OrdinalIgnoreCase)
-                        ? $"Supplier name '{model.SupplierName}' already exists."
-                        : $"Vendor Code '{model.VendorCode}' is already registered to {duplicateSupplier.NamaSupplier}.";
+                    if (string.IsNullOrEmpty(model.SupplierName) || string.IsNullOrEmpty(model.VendorCode))
+                    {
+                        return BadRequest(new { success = false, message = "Supplier Name and Vendor Code are required for new suppliers." });
+                    }
 
-                    return BadRequest(new { success = false, message = msg });
+                    // Cek duplikat
+                    var duplicateSupplier = await _context.Suppliers
+                        .FirstOrDefaultAsync(s => s.NamaSupplier.ToLower() == model.SupplierName.ToLower()
+                                               || s.KodeVendor.ToLower() == model.VendorCode.ToLower());
+
+                    if (duplicateSupplier != null)
+                    {
+                        string msg = duplicateSupplier.NamaSupplier.Equals(model.SupplierName, StringComparison.OrdinalIgnoreCase)
+                            ? $"Supplier name '{model.SupplierName}' already exists."
+                            : $"Vendor Code '{model.VendorCode}' is already registered to {duplicateSupplier.NamaSupplier}.";
+
+                        return BadRequest(new { success = false, message = msg });
+                    }
+
+                    // jika tidak duplikat, buat baru
+                    var newSupplier = new Supplier
+                    {
+                        NamaSupplier = model.SupplierName,
+                        KodeVendor = model.VendorCode,
+                        EmailSupplier = "not.set@email.com",
+                        Status = "Non-Aktif",
+                        CreatedAt = DateTime.Now
+                    };
+                    _context.Suppliers.Add(newSupplier);
+                    await _context.SaveChangesAsync();
+
+                    model.SupplierId = newSupplier.ID_Supplier;
                 }
-
-                // jika tidak duplikat, buat baru
-                var newSupplier = new Supplier
-                {
-                    NamaSupplier = model.SupplierName,
-                    KodeVendor = model.VendorCode,
-                    EmailSupplier = "not.set@email.com",
-                    Status = "Non-Aktif",
-                    CreatedAt = DateTime.Now
-                };
-                _context.Suppliers.Add(newSupplier);
-                await _context.SaveChangesAsync();
-
-                model.SupplierId = newSupplier.ID_Supplier;
-            
-
             }
+
             catch (Exception ex)
             {
                 // Mengambil pesan error
@@ -165,6 +178,14 @@ namespace sourcelist.Controllers
                     using (var fileStream = new FileStream(finalFilePath, FileMode.Create))
                     {
                         await model.AttachedEndorsementFile.CopyToAsync(fileStream);
+                    }
+                }
+
+                {
+                    var existingSupplier = await _context.Suppliers.FindAsync(model.SupplierId);
+                    if (existingSupplier != null)
+                    {
+                        model.SupplierName = existingSupplier.NamaSupplier;
                     }
                 }
 
