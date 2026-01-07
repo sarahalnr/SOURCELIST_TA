@@ -241,6 +241,18 @@
                 editSupplierModal.querySelector('#edit-status').value = button.getAttribute('data-status');
             });
 
+            const searchBox = document.getElementById('searchBox');
+            let debounceTimer;
+            if (searchBox) {
+                searchBox.addEventListener('input', function () {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        this.form.submit();
+                    }, 400); 
+                });
+            }
+
+
             function resetForm(formId) {
                 const form = document.getElementById(formId);
                 if (form) {
