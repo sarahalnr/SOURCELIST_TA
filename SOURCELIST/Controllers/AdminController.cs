@@ -38,48 +38,33 @@ public class AdminController : Controller
     [HttpPost]
     public async Task<IActionResult> CreateUser(UserDTO userDto)
     {
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid) return Json(new { success = false, message = "Data is invalid." });
+        try
         {
-            try
-            {
-                await _userService.CreateUserAsync(userDto);
-
-                TempData["SuccessMessage"] = "User has been successfully created!";
-                return RedirectToAction("ManageUser");
-            }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = ex.Message;
-                return RedirectToAction("ManageUser");
-            }
+            await _userService.CreateUserAsync(userDto);
+            return Json(new { success = true, message = "User successfully created!" });
         }
-
-        TempData["ErrorMessage"] = "Data is invalid or incomplete.";
-        return RedirectToAction("ManageUser");
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = ex.Message });
+        }
     }
+
 
     // Aksi untuk memproses edit user
     [HttpPost]
     public async Task<IActionResult> EditUser(UserDTO userDto)
     {
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid) return Json(new { success = false, message = "Data is invalid." });
+        try
         {
-            try
-            {
-                await _userService.UpdateUserAsync(userDto);
-
-                TempData["SuccessMessage"] = "User has been successfully updated!";
-                return RedirectToAction("ManageUser");
-            }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = ex.Message;
-                return RedirectToAction("ManageUser");
-            }
+            await _userService.UpdateUserAsync(userDto);
+            return Json(new { success = true, message = "User successfully updated!" });
         }
-
-        TempData["ErrorMessage"] = "Data is invalid or incomplete..";
-        return RedirectToAction("ManageUser");
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = ex.Message });
+        }
     }
 
     [HttpGet]
@@ -96,52 +81,30 @@ public class AdminController : Controller
     [HttpPost]
     public async Task<IActionResult> CreateSupplier(SupplierDTO supplierDto)
     {
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid) return Json(new { success = false, message = "Data is incomplete." });
+        try
         {
-            try
-            {
-                await _supplierService.CreateSupplierAsync(supplierDto);
-                TempData["SuccessMessage"] = "Supplier has been successfully created!";
-                return RedirectToAction("ManageSupplier");
-            }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = ex.Message;
-                return RedirectToAction("ManageSupplier");
-            }
+            await _supplierService.CreateSupplierAsync(supplierDto);
+            return Json(new { success = true, message = "Supplier successfully created!" });
         }
-    
-
-      TempData["ErrorMessage"] = "Data is invalid or incomplete..";
-
-        var errorMessages = string.Join(" | ", ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage));
-
-        TempData["ErrorMessage"] = "Validation Error: " + errorMessages;
-
-        return RedirectToAction("ManageSupplier");
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = ex.Message });
+        }
     }
 
     [HttpPost]
     public async Task<IActionResult> EditSupplier(SupplierDTO supplierDto)
     {
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid) return Json(new { success = false, message = "Data is incomplete." });
+        try
         {
-            try
-            {
-                await _supplierService.UpdateSupplierAsync(supplierDto);
-                TempData["SuccessMessage"] = "Supplier has been successfully updated!";
-                return RedirectToAction("ManageSupplier");
-            }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = ex.Message;
-                return RedirectToAction("ManageSupplier");
-            }
+            await _supplierService.UpdateSupplierAsync(supplierDto);
+            return Json(new { success = true, message = "Supplier successfully updated!" });
         }
-        TempData["ErrorMessage"] = "Data is invalid or incomplete..";
-        return RedirectToAction("ManageSupplier");
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = ex.Message });
         }
     }
-
+}

@@ -67,6 +67,10 @@
             margin-top: 12px;
         }
 
+        .is-invalid {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
+        }
      
 </style>
 }
@@ -261,121 +265,102 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-    
         document.addEventListener('DOMContentLoaded', function () {
+
+        
+            function resetForm(formId) {
+                const form = document.getElementById(formId);
+                if (form) {
+                    form.reset();
+                    form.querySelectorAll('.form-control, .form-select').forEach(el => {
+                        el.classList.remove('is-invalid');
+                    });
+                }
+            }
 
             var editUserModal = document.getElementById('editUserModal');
             editUserModal.addEventListener('show.bs.modal', function (event) {
                 var button = event.relatedTarget;
-                var id = button.getAttribute('data-id');
-                var username = button.getAttribute('data-username');
-                var email = button.getAttribute('data-email');
-                var role = button.getAttribute('data-role');
-                var status = button.getAttribute('data-status');
-
-                var idInput = editUserModal.querySelector('#edit-id');
-                var usernameInput = editUserModal.querySelector('#edit-username');
-                var emailInput = editUserModal.querySelector('#edit-email');
-                var roleInput = editUserModal.querySelector('#edit-role');
-                var statusInput = editUserModal.querySelector('#edit-status');
-                var passwordInput = editUserModal.querySelector('#edit-password');
-
-                passwordInput.value = "";
-                idInput.value = id;
-                usernameInput.value = username;
-                emailInput.value = email;
-                roleInput.value = role;
-                statusInput.value = status;
+                editUserModal.querySelector('#edit-id').value = button.getAttribute('data-id');
+                editUserModal.querySelector('#edit-username').value = button.getAttribute('data-username');
+                editUserModal.querySelector('#edit-email').value = button.getAttribute('data-email');
+                editUserModal.querySelector('#edit-role').value = button.getAttribute('data-role');
+                editUserModal.querySelector('#edit-status').value = button.getAttribute('data-status');
+                editUserModal.querySelector('#edit-password').value = "";
             });
 
-            const createForm = document.getElementById('createForm');
-            const editForm = document.getElementById('editForm');
+            //  AJAX Handler untuk Create & Edit
+            function handleUserSubmit(formId, confirmTitle) {
+                const form = document.getElementById(formId);
+                if (!form) return;
 
-            // event listener untuk form CREATE
-            if (createForm) {
-                createForm.addEventListener('submit', function (event) {
-                    event.preventDefault();
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
 
-                    // pop-up konfirmasi
+                    // Bersihkan tanda merah sebelumnya
+                    form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
                     Swal.fire({
-                        title: 'Confirm User Creation',
-                        text: "Are you sure you want to create this new user?",
+                        title: confirmTitle,
+                        text: "Are you sure you want to proceed?",
                         icon: 'question',
                         showCancelButton: true,
-                        confirmButtonColor: '#28a745', // Warna hijau
+                        confirmButtonColor: '#28a745',
                         cancelButtonColor: '#d33',
-                        confirmButtonText: 'Yes!',
-                        cancelButtonText: 'Cancel'
+                        confirmButtonText: 'Yes, Save!',
+                        cancelButtonText: 'No, Cancel'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            this.submit();
+                            const formData = new FormData(form);
+                            fetch(form.action, { method: 'POST', body: formData })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire('Success!', data.message, 'success').then(() => location.reload());
+                                } else {
+                                    Swal.fire('Failed!', data.message, 'error');
+
+                                    // BORDER MERAH
+                                    const msg = data.message.toLowerCase();
+                                    if (msg.includes("username")) {
+                                        form.querySelector('[name="Username"]').classList.add('is-invalid');
+                                    }
+                                    if (msg.includes("email")) {
+                                        form.querySelector('[name="Email"]').classList.add('is-invalid');
+                                    }
+                                }
+                            });
+                        }
+                        else if (result.dismiss === Swal.DismissReason.cancel) {
+                            resetForm(formId);
                         }
                     });
                 });
             }
 
-              @if (TempData["SuccessMessage"] != null)
-            {
-                    <text>
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Succes!',
-                        text: "@Html.Raw(TempData["ErrorMessage"])",
-                        confirmButtonColor: '#28a745'
+            ['createUserModal', 'editUserModal'].forEach(id => {
+                const modalEl = document.getElementById(id);
+                if (modalEl) {
+                    modalEl.addEventListener('hidden.bs.modal', function () {
+                        resetForm(modalEl.querySelector('form').id);
                     });
-                    </text>
-            }
-             @if (TempData["ErrorMessage"] != null)
-               {
+                }
+            });
 
-                           <text>
-                                 Swal.fire({
-                                   icon: 'error',
-                                   title: 'Failed!',
-                                   text: "@Html.Raw(TempData["ErrorMessage"])",
-                                   confirmButtonColor: '#d33'
-                                });
-                           </text>
-                   
-              }
-
-
-            //  event listener untuk form EDIT
-            if (editForm) {
-                editForm.addEventListener('submit', function (event) {
-         
-                    event.preventDefault();
-                    Swal.fire({
-                        title: 'Confirm Changes',
-                        text: "Are you sure you want to save these changes?",
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonColor: '#007bff', // Warna biru
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Yes!',
-                        cancelButtonText: 'Cancel'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            this.submit();
-                        }
-                    });
-                });
-            }
+            // Panggil Handler
+            handleUserSubmit('createForm', 'Create New User');
+            handleUserSubmit('editForm', 'Save User Changes');
 
             const searchBox = document.getElementById('searchBox');
             let debounceTimer;
-
             if (searchBox) {
                 searchBox.addEventListener('input', function () {
                     clearTimeout(debounceTimer);
-
-                    debounceTimer = setTimeout(() => {
-                        this.form.submit();
-                    }, 400); 
+                    debounceTimer = setTimeout(() => { this.form.submit(); }, 400);
                 });
             }
-
         });
     </script>
 }

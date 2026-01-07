@@ -45,6 +45,12 @@
             letter-spacing: 0.5px;
             margin-top: 12px;
         }
+
+        .is-invalid {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
+        }
+
     </style>
 }
 
@@ -224,106 +230,82 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-
+         
             var editSupplierModal = document.getElementById('editSupplierModal');
             editSupplierModal.addEventListener('show.bs.modal', function (event) {
                 var button = event.relatedTarget;
-                var id = button.getAttribute('data-id');
-                var nama = button.getAttribute('data-nama');
-                var kode = button.getAttribute('data-kode');
-                var email = button.getAttribute('data-email');
-                var status = button.getAttribute('data-status');
-
-                editSupplierModal.querySelector('#edit-id').value = id;
-                editSupplierModal.querySelector('#edit-nama').value = nama;
-                editSupplierModal.querySelector('#edit-kode').value = kode;
-                editSupplierModal.querySelector('#edit-email').value = email;
-                editSupplierModal.querySelector('#edit-status').value = status;
+                editSupplierModal.querySelector('#edit-id').value = button.getAttribute('data-id');
+                editSupplierModal.querySelector('#edit-nama').value = button.getAttribute('data-nama');
+                editSupplierModal.querySelector('#edit-kode').value = button.getAttribute('data-kode');
+                editSupplierModal.querySelector('#edit-email').value = button.getAttribute('data-email');
+                editSupplierModal.querySelector('#edit-status').value = button.getAttribute('data-status');
             });
 
-            const createForm = document.getElementById('createForm');
-            const editForm = document.getElementById('editForm');
+            function resetForm(formId) {
+                const form = document.getElementById(formId);
+                if (form) {
+                    form.reset();
+                    form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                }
+            }
 
             // event listener untuk form CREATE
-            if (createForm) {
-                createForm.addEventListener('submit', function (event) {
-                    event.preventDefault();
+            function handleFormSubmit(formId, confirmTitle) {
+                const form = document.getElementById(formId);
+                if (!form) return;
+
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+
                     Swal.fire({
-                        title: 'Confirm New Supplier Creation',
-                        text: "Are you sure you want to create this new supplier?",
+                        title: confirmTitle,
+                        text: "Are you sure?",
                         icon: 'question',
                         showCancelButton: true,
                         confirmButtonColor: '#28a745',
                         cancelButtonColor: '#d33',
-                        confirmButtonText: 'Yes, Create ',
-                        cancelButtonText: 'No'
+                        confirmButtonText: 'Yes!',
+                        cancelButtonText: 'No, Cancel'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            this.submit();
+                            const formData = new FormData(form);
+                            fetch(form.action, { method: 'POST', body: formData })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire('Success!', data.message, 'success').then(() => location.reload());
+                                } else {
+                                    Swal.fire('Failed!', data.message, 'error');
+                                    // border merah jika error
+                                    const msg = data.message.toLowerCase();
+                                    if (msg.includes("name") || msg.includes("nama")) form.querySelector('[name*="Nama"]').classList.add('is-invalid');
+                                    if (msg.includes("vendor")) form.querySelector('[name*="Kode"]').classList.add('is-invalid');
+                                    if (msg.includes("email")) form.querySelector('[name*="Email"]').classList.add('is-invalid');
+                                }
+                            });
+                        }
+                        else if (result.dismiss === Swal.DismissReason.cancel) {
+                            resetForm(formId);
                         }
                     });
                 });
             }
 
-             @if (TempData["SuccessMessage"] != null)
-            {
-                        <text>
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Succes!',
-                            text: "@Html.Raw(TempData["ErrorMessage"])",
-                            confirmButtonColor: '#28a745'
-                        });
-                        </text>
-            }
-             @if (TempData["ErrorMessage"] != null)
-               {
-
-                               <text>
-                                     Swal.fire({
-                                       icon: 'error',
-                                       title: 'Failed!',
-                                       text: "@Html.Raw(TempData["ErrorMessage"])",
-                                       confirmButtonColor: '#d33'
-                                    });
-                               </text>
-
-              }
-
-
-            // event listener untuk form EDIT
-            if (editForm) {
-                editForm.addEventListener('submit', function (event) {
-                    event.preventDefault();
-                    Swal.fire({
-                        title: 'Confirm Changes',
-                        text: "Are you sure you want to save these changes?",
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonColor: '#007bff',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Yes, Create',
-                        cancelButtonText: 'No'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            this.submit();
-                        }
+            const modals = ['createUserModal', 'editUserModal', 'createSupplierModal', 'editSupplierModal'];
+            modals.forEach(modalId => {
+                const modalEl = document.getElementById(modalId);
+                if (modalEl) {
+                    modalEl.addEventListener('hidden.bs.modal', function () {
+                        const form = modalEl.querySelector('form');
+                        if (form) resetForm(form.id);
                     });
-                });
-            }
+                }
+            });
 
-            const searchBox = document.getElementById('searchBox');
-            let debounceTimer;
-
-            if (searchBox) {
-                searchBox.addEventListener('input', function () {
-                    clearTimeout(debounceTimer);
-
-                    debounceTimer = setTimeout(() => {
-                        this.form.submit();
-                    }, 400); 
-                });
-            }
+            // Panggil fungsi handle
+            handleFormSubmit('createForm', 'Confirm Creation');
+            handleFormSubmit('editForm', 'Confirm Changes');
         });
+
     </script>
 }
