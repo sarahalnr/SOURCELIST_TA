@@ -241,18 +241,32 @@
                 editSupplierModal.querySelector('#edit-status').value = button.getAttribute('data-status');
             });
 
-            const searchBox = document.getElementById('searchBox');
-            let debounceTimer;
-            if (searchBox) {
-                searchBox.addEventListener('input', function () {
-                    clearTimeout(debounceTimer);
-                    debounceTimer = setTimeout(() => {
-                        this.form.submit();
-                    }, 400); 
-                });
+        const searchBox = document.getElementById('searchBox');
+        let debounceTimer;
+        if (searchBox) {
+            if (searchBox.value.length > 0) {
+                searchBox.focus();
+                const val = searchBox.value;
+                searchBox.value = '';
+                searchBox.value = val;
             }
 
+            // LOGIKA DEBOUNCE SUBMIT
+            searchBox.addEventListener('input', function () {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    sessionStorage.setItem('isSearching', 'true');
+                    this.form.submit();
+                }, 500); 
+            });
+        }
 
+        //  Pastikan fokus kembali jika sedang searching
+        if (sessionStorage.getItem('isSearching') === 'true') {
+            searchBox.focus();
+            sessionStorage.removeItem('isSearching');
+        }
+        
             function resetForm(formId) {
                 const form = document.getElementById(formId);
                 if (form) {

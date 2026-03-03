@@ -30,14 +30,14 @@
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
-        let typingTimer;
-        const doneTypingInterval = 500;
+                let typingTimer;
+                const doneTypingInterval = 500;
 
-                function loadSourceList(page = 1) {
+               function loadSourceList(page = 1) {
             let searchTerm = $('#searchBox').val();
             $('#sourceListTableContainer').html('<p class="text-center">Loading...</p>');
 
-            $.ajax({ 
+            $.ajax({
                 url: '@Url.Action("IndexForApprove")',
                 type: 'GET',
                 data: {
@@ -63,5 +63,23 @@
                     }
                 }
             });
+        }
+                $('#searchBox').on('keyup', function () {
+                    clearTimeout(typingTimer);
+                    typingTimer = setTimeout(function () {
+                        loadSourceList(1);
+                    }, doneTypingInterval);
+                }).on('keydown', function () {
+                    clearTimeout(typingTimer);
+                });
+
+
+                $(document).on('click', '#sourceListTableContainer .pagination .page-link', function (e) {
+                    e.preventDefault();
+                    let page = $(this).data('page');
+                    if (page && !$(this).parent().hasClass('disabled') && !$(this).parent().hasClass('active')) {
+                        loadSourceList(page);
+                    }
+                });
     </script>
 }
