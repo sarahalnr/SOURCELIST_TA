@@ -148,6 +148,23 @@
             font-size: 1.2rem;
         }
 
+        .toggle-password {
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.2s;
+            z-index: 10;
+        }
+
+            .toggle-password:hover {
+                color: var(--green-dark);
+            }
+
+
         /* Tombol Login */
         .btn-login {
             width: 100%;
@@ -192,8 +209,10 @@
 
                 <div class="input-group">
                     <i class="bi bi-lock-fill input-icon"></i>
-                    <input type="password" class="input-field" name="Password" placeholder="Password" required>
+                    <input type="password" class="input-field" id="password" name="Password" placeholder="Password" required>
+                    <i class="bi bi-eye-slash toggle-password" id="togglePassword"></i>
                 </div>
+
 
                 <button type="submit" class="btn-login">LOGIN</button>
 
@@ -216,6 +235,17 @@
                     scrollbarPadding: false 
                 });
             }
+                    const togglePassword = document.querySelector('#togglePassword');
+            const password = document.querySelector('#password');
+
+            togglePassword.addEventListener('click', function () {
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+
+                // icon mata
+                this.classList.toggle('bi-eye');
+                this.classList.toggle('bi-eye-slash');
+            });
         });
     </script>
 </body>

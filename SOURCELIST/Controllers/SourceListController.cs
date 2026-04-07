@@ -233,9 +233,7 @@ namespace sourcelist.Controllers
                         </table>
                         <br/>
                         <p>Please check the details in the SOURCE LIST System Application.<br/> 
-                        <div class='button-container'>
-                            <a href='{linkUrl}' class='button'>Open Source List System</a>
-                        </div>
+                       
                         
                         <br><p>Thank you,</p><p><b>Source List System</b></p>
                         <div class='footer'>This is an automatic email from <b>SOURCELIST System</b>. Do not reply to this email.</div> 
@@ -473,9 +471,7 @@ namespace sourcelist.Controllers
                             </table>
                             <br/>
                             <p>Please check the details in the Source List System Application.<br/> 
-                            <div class='button-container'>
-                                <a href='{linkUrl}' class='button'>Open Source List Detail</a>
-                            </div>
+                            
                             <br><p>Thank you,</p><p><b>Source List System</b></p>
                             <div class='footer'>This is an automatic email from <b>SOURCELIST System</b>. Do not reply to this email.</div> 
                         </body>
@@ -558,9 +554,7 @@ namespace sourcelist.Controllers
                             </table>
                             <br/>
                             <p>Please check the details and revise your submission in the Source List System Application.<br/> 
-                            <div class='button-container'>
-                                <a href='{linkUrl}' class='button'>Open Source List Detail</a>
-                            </div>
+                           
                             <br><p>Thank you,</p><p><b>Source List System</b></p>
                             <div class='footer'>This is an automatic email from <b>SOURCELIST System</b>. Do not reply to this email.</div> 
                         </body>
@@ -677,14 +671,14 @@ namespace sourcelist.Controllers
 
         [HttpGet]
         public async Task<JsonResult> GetSupplierDetail(int id)
-        {
-            var supplier = await _context.Suppliers.FindAsync(id);
-            if (supplier == null)
             {
+            var supplier = await _context.Suppliers.FindAsync(id);
+                if (supplier == null)
+                {
                 return Json(null);
+                }
+                return Json(new { kodeVendor = supplier.KodeVendor });
             }
-            return Json(new { kodeVendor = supplier.KodeVendor });
-        }
 
         [HttpGet]
         public async Task<IActionResult> ReportPdf(string id)

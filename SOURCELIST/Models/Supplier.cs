@@ -13,6 +13,6 @@ namespace sourcelist.Models
         public string KodeVendor { get; set; }
         public string EmailSupplier { get; set; }
         public string Status { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime? CreatedAt { get; set; }
     }
 }
