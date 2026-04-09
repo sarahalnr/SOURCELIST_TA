@@ -64,12 +64,12 @@ namespace sourcelist.Controllers
                         req.SubmittedDate,
                         CleanStatus = req.ApprovalStatus.Trim().ToUpper()
                     })
-                    .Where(req => req.CleanStatus == "COMPLETED" || req.CleanStatus == "PENDING" || req.CleanStatus == "REJECTED")
+                    .Where(req => req.CleanStatus == "APPROVED" || req.CleanStatus == "PENDING" || req.CleanStatus == "REJECTED")
                     .GroupBy(req => req.SubmittedDate.Month)
                     .Select(g => new
                     {
                         Month = g.Key,
-                        ApproveCount = g.Count(req => req.CleanStatus == "COMPLETED"),
+                        ApproveCount = g.Count(req => req.CleanStatus == "APPROVED"),
                         PendingCount = g.Count(req => req.CleanStatus == "PENDING"),
                         RejectedCount = g.Count(req => req.CleanStatus == "REJECTED")
                     });
