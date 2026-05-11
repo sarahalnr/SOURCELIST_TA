@@ -23,6 +23,9 @@
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
                                 <input asp-for="OldPassword" class="form-control" placeholder="Enter current password" />
+                                <button class="btn btn-outline-secondary toggle-password" type="button">
+                                    <i class="bi bi-eye"></i>
+                                </button>
                             </div>
                             <span asp-validation-for="OldPassword" class="text-danger small"></span>
                         </div>
@@ -32,6 +35,9 @@
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="bi bi-lock"></i></span>
                                 <input asp-for="NewPassword" class="form-control" placeholder="Enter new password" />
+                                <button class="btn btn-outline-secondary toggle-password" type="button">
+                                    <i class="bi bi-eye"></i>
+                                </button>
                             </div>
                             <span asp-validation-for="NewPassword" class="text-danger small"></span>
                         </div>
@@ -41,6 +47,9 @@
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="bi bi-check-circle"></i></span>
                                 <input asp-for="ConfirmPassword" class="form-control" placeholder="Re-enter new password" />
+                                <button class="btn btn-outline-secondary toggle-password" type="button">
+                                    <i class="bi bi-eye"></i>
+                                </button>
                             </div>
                             <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
                         </div>
@@ -65,4 +74,22 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        $(document).ready(function () {
+            $(".toggle-password").click(function () {
+                var input = $(this).closest(".input-group").find("input");
+                var icon = $(this).find("i");
+
+                if (input.attr("type") === "password") {
+                    input.attr("type", "text");
+                    icon.removeClass("bi-eye").addClass("bi-eye-slash");
+                } else {
+                    input.attr("type", "password");
+                    icon.removeClass("bi-eye-slash").addClass("bi-eye");
+                }
+            });
+        });
+    </script>
 }
+
