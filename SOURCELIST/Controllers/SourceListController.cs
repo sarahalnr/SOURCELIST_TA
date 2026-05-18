@@ -132,13 +132,40 @@ namespace sourcelist.Controllers
                 });
             }
 
-            if (model.SupplierStatus == "New Supplier" && model.AssessmentAttachmentFile == null)
+            // Validasi untuk New Supplier
+            if (model.SupplierStatus == "New Supplier")
             {
-                ModelState.AddModelError("AssessmentAttachmentFile", "Supplier Assesment Form required for new supplier.");
+                if (model.AssessmentAttachmentFile == null)
+                {
+                    ModelState.AddModelError("AssessmentAttachmentFile", "Supplier Assessment Form required for new supplier.");
+                }
+                else
+                {
+                    // Cek PDF ATAU ekstensi filenya bukan .pdf
+                    var extension = Path.GetExtension(model.AssessmentAttachmentFile.FileName).ToLower();
+                    if (model.AssessmentAttachmentFile.ContentType != "application/pdf" || extension != ".pdf")
+                    {
+                        ModelState.AddModelError("AssessmentAttachmentFile", "Invalid file format. Only PDF files are allowed.");
+                    }
+                }
             }
-            if (model.SupplierStatus == "Transfer" && model.AttachedEndorsementFile == null)
+
+            // Validasi untuk Transfer Supplier
+            if (model.SupplierStatus == "Transfer" || model.SupplierStatus == "Transfer from another site")
             {
-                ModelState.AddModelError("AttachedEndorsementFile", "Supplier Endorsement List required for supplier transfer.");
+                if (model.AttachedEndorsementFile == null)
+                {
+                    ModelState.AddModelError("AttachedEndorsementFile", "Supplier Endorsement List required for supplier transfer.");
+                }
+                else
+                {
+                    // Cek PDF ATAU ekstensi filenya bukan .pdf
+                    var extension = Path.GetExtension(model.AttachedEndorsementFile.FileName).ToLower();
+                    if (model.AttachedEndorsementFile.ContentType != "application/pdf" || extension != ".pdf")
+                    {
+                        ModelState.AddModelError("AttachedEndorsementFile", "Invalid file format. Only PDF files are allowed.");
+                    }
+                }
             }
 
             if (!ModelState.IsValid)
