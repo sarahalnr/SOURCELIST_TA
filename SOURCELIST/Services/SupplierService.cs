@@ -27,6 +27,8 @@ namespace sourcelist.Services
                     command.Parameters.AddWithValue("@NamaSupplier", supplierDto.NamaSupplier);
                     command.Parameters.AddWithValue("@KodeVendor", supplierDto.KodeVendor);
                     command.Parameters.AddWithValue("@EmailSupplier", supplierDto.EmailSupplier);
+                    command.Parameters.AddWithValue("@PICName", supplierDto.PICName ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@PICEmail", supplierDto.PICEmail ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@Status", "Aktif");
 
                     await connection.OpenAsync();
@@ -47,6 +49,8 @@ namespace sourcelist.Services
                     command.Parameters.AddWithValue("@NamaSupplier", supplierDto.NamaSupplier);
                     command.Parameters.AddWithValue("@KodeVendor", supplierDto.KodeVendor);
                     command.Parameters.AddWithValue("@EmailSupplier", supplierDto.EmailSupplier);
+                    command.Parameters.AddWithValue("@PICName", supplierDto.PICName ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@PICEmail", supplierDto.PICEmail ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@Status", supplierDto.Status);
 
                     await connection.OpenAsync();
@@ -79,6 +83,8 @@ namespace sourcelist.Services
                                 NamaSupplier = reader["NamaSupplier"].ToString() ?? "",
                                 KodeVendor = reader["KodeVendor"].ToString() ?? "",
                                 EmailSupplier = reader["EmailSupplier"].ToString() ?? "",
+                                PICName = reader["PICName"] != DBNull.Value ? reader["PICName"].ToString() : "",
+                                PICEmail = reader["PICEmail"] != DBNull.Value ? reader["PICEmail"].ToString() : "",
                                 Status = reader["Status"].ToString() ?? ""
                             });
                         }
